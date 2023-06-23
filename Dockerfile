@@ -9,5 +9,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
+USER 1001
 CMD [ "python", "-m" , "flask", "--app", "app/app", "run", "--host=0.0.0.0" ]
 EXPOSE 5000
