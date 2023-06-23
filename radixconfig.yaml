@@ -1,0 +1,16 @@
+apiVersion: radix.equinor.com/v1
+kind: RadixApplication
+metadata:
+  name: fmu-to-resqml
+spec:
+  environments:
+    - name: dev
+      build:
+        from: master
+  components:
+    - name: app
+      src: "."
+      publicPort: http
+      ports:
+        - name: http
+          port: 5000
