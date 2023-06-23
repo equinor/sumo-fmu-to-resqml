@@ -6,7 +6,7 @@ spec:
   environments:
     - name: dev
       build:
-        from: master
+        from: main
   components:
     - name: app
       src: "."
