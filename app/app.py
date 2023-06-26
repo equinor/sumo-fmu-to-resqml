@@ -1,9 +1,8 @@
-from flask import Flask, send_file
+from flask import Flask, send_file, request
 
 from encoding import json_to_resqml
 
 from fmu.sumo.explorer import Explorer
-sumo = Explorer("dev")
 
 # Run application
 app = Flask(__name__)
@@ -18,5 +17,13 @@ def hello_world():
 # Retrieve sample case
 @app.get("/sample-resqml")
 def sample_resqml():
+    token = request.headers.get("Authorization")
+    if not token:
+        return "Missing authorization token", 401
+    
+    token = token.split(" ")[1]
+    
+    sumo = Explorer("dev", token)
+
     polygon = sumo.cases.filter(asset="Drogon")[1].polygons[0]
-    return f"<textarea style='width:90vw;height:90vh;border:none;'>{json_to_resqml(polygon.metadata)}</textarea>"
+    return json_to_resqml(polygon.metadata)
