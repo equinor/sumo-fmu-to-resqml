@@ -17,10 +17,9 @@ def hello_world():
 
 @app.get("/object/")
 def get_object_as_resqml():
-    uuid = request.args.get("id")
-    if not uuid:
-        return "Missing object id", 400
-    
+    """
+        Retrieve metadata of a given object
+    """
     token = request.headers.get("Authorization")
     if not token:
         return "Missing authorization token in header", 401
@@ -28,11 +27,29 @@ def get_object_as_resqml():
     token = token.split(" ")[1]
     sumo = Explorer("dev", token)
 
-    object = sumo.cases.filter(uuid=uuid)
+    uuid = request.args.get("id")
+    if not uuid:
+        return "Missing object id", 400
+    
+    object_type = request.args.get("object_type")
+    if not object_type:
+        return "Missing object type", 400
+
+    #### Explorer.py implements sumo._utils.get_object(uuid) which gets all metadata directly (regardless of type)
+    match object_type:
+        case "surface":
+            object = sumo.get_surface_by_uuid(uuid)
+        case "polygon":
+            object = sumo.get_polygons_by_uuid(uuid)
+        case "table":
+            object = sumo.get_table_by_uuid(uuid)
+        case _:
+            return f"{object_type} not recognized. Valid object types are ['surface', 'polygon', 'table']"
+    
     if not object:
         return "Object not found", 400
     
-    return json_to_resqml(object[0].cubes[0].metadata)
+    return json_to_resqml(object.metadata)
 
 
 # Retrieve sample case
