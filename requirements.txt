@@ -1,1 +1,4 @@
 flask
+json2xml
+xmltodict
+fmu-sumo @ git+https://github.com/equinor/fmu-sumo.git@main#egg=fmu-sumo
