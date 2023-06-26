@@ -15,7 +15,7 @@ def hello_world():
     return "<p> Hello world! </p>"
 
 
-app.get("/object/")
+@app.get("/object/")
 def get_object_as_resqml():
     uuid = request.args.get("id")
     if not uuid:
