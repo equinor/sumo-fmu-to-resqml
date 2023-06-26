@@ -32,7 +32,7 @@ def get_object_as_resqml():
     if not object:
         return "Object not found", 400
     
-    return json_to_resqml(object[0])
+    return json_to_resqml(object[0].cubes[0].metadata)
 
 
 # Retrieve sample case
