@@ -17,6 +17,66 @@ def hello_world():
     return "<p> Hello world! </p>"
 
 
+
+@app.get("/objects/alt")
+def get_objects_alternative():
+    """
+        Retrieve all unfiltered metadata for a given object.
+    """
+    token = request.headers.get("Authorization")
+    if not token:
+        return "Missing authorization token in header", 401
+    
+    token = token.split(" ")[1]
+    sumo = Explorer("dev", token)
+
+    uuid = request.args.get("id")
+    if not uuid:
+        return "Missing object id", 400
+
+    try:
+        metadata = sumo._utils.get_object(uuid)
+    except:
+        return f"Object:'{uuid}' not found. Use POST for retrieving several objects", 404
+    
+    return json_to_resqml(metadata)
+
+
+@app.post("/objects/alt")
+def get_several_objects_alternative():
+    """
+        Retrieve all unfiltered metadata for several given objects.
+    """
+    TEMP_ZIP_PATH = "objects.epc"
+
+    token = request.headers.get("Authorization")
+    if not token:
+        return "Missing authorization token in header", 401
+    
+    token = token.split(" ")[1]
+    sumo = Explorer("dev", token)
+
+    ids = request.form.get("ids")
+    if not ids:
+        return "Missing object ids", 400
+
+    with ZipFile(TEMP_ZIP_PATH, "w") as zip:
+
+        for uuid in ids.split(";"):
+            try:
+                metadata = sumo._utils.get_object(uuid)
+            except:
+                return f"Object:'{uuid}' not found. Use POST for retrieving several objects", 404
+        
+            write_dict_to_zip_file(metadata, zip, uuid+".resqml")
+
+    with open(TEMP_ZIP_PATH, "rb") as f:
+        output = f.read()
+
+    os.remove(TEMP_ZIP_PATH)
+    return output
+
+
 @app.get("/objects/")
 def get_objects_as_resqml():
     """
@@ -96,7 +156,6 @@ def get_several_objects_as_resqml():
         output = f.read()
 
     os.remove(TEMP_ZIP_PATH)
-
     return output
 
 
