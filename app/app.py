@@ -1,7 +1,8 @@
 from flask import Flask, send_file, request
 
 from encoding import json_to_resqml, write_dict_to_zip_file
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
+from io import BytesIO
 import os
 
 from fmu.sumo.explorer import Explorer
@@ -36,8 +37,8 @@ def get_objects_alternative():
 
     try:
         metadata = sumo._utils.get_object(uuid)
-    except:
-        return f"Object:'{uuid}' not found. Use POST for retrieving several objects", 404
+    except Exception as e:
+        return f"{e} while searching for object:'{uuid}'.\n\nUse POST for retrieving several objects", 404
     
     return json_to_resqml(metadata)
 
@@ -47,8 +48,6 @@ def get_several_objects_alternative():
     """
         Retrieve all unfiltered metadata for several given objects.
     """
-    TEMP_ZIP_PATH = "objects.epc"
-
     token = request.headers.get("Authorization")
     if not token:
         return "Missing authorization token in header", 401
@@ -60,20 +59,19 @@ def get_several_objects_alternative():
     if not ids:
         return "Missing object ids", 400
 
-    with ZipFile(TEMP_ZIP_PATH, "w") as zip:
-
+    zipstream = BytesIO()
+    with ZipFile(zipstream, "w") as zip:
         for uuid in ids.split(";"):
             try:
                 metadata = sumo._utils.get_object(uuid)
-            except:
-                return f"Object:'{uuid}' not found. Use POST for retrieving several objects", 404
+            except Exception as e:
+                return f"'{e}' while searching for object:'{uuid}'.", 404
         
             write_dict_to_zip_file(metadata, zip, uuid+".resqml")
 
-    with open(TEMP_ZIP_PATH, "rb") as f:
-        output = f.read()
+    output = zipstream.getvalue()
+    zipstream.close()
 
-    os.remove(TEMP_ZIP_PATH)
     return output
 
 
@@ -119,8 +117,6 @@ def get_several_objects_as_resqml():
     """
         Retrieve metadata of several objects as resqml.
     """
-    TEMP_ZIP_PATH = "objects.epc"
-
     token = request.headers.get("Authorization")
     if not token:
         return "Missing authorization token in header", 401
@@ -132,7 +128,8 @@ def get_several_objects_as_resqml():
     if not ids_types:
         return "Missing object ids and object types", 400
 
-    with ZipFile(TEMP_ZIP_PATH, "w") as zip:
+    zipstream = BytesIO()
+    with ZipFile(zipstream, "w") as zip:
 
         for id_type in ids_types.split(";"):
             uuid, object_type = id_type.split(",")
@@ -152,10 +149,9 @@ def get_several_objects_as_resqml():
         
             write_dict_to_zip_file(object.metadata, zip, uuid+".resqml")
 
-    with open(TEMP_ZIP_PATH, "rb") as f:
-        output = f.read()
+    output = zipstream.getvalue()
+    zipstream.close()
 
-    os.remove(TEMP_ZIP_PATH)
     return output
 
 
