@@ -14,8 +14,8 @@ from fmu.sumo.explorer import Explorer
 
 def check_request_to_token(request : Request) -> str:
     """
-        Check that a request is formatted correctly and return the auth token if it exists.
-        Throws exception on error.
+        Check that a request is contains a token and returns said auth token if it exists.
+        Throws exception otherwise.
     """
     token = request.headers.get("Authorization")
     if not token:
@@ -59,13 +59,13 @@ def get_several_objects() -> bytes:
     
     sumo = Explorer("dev", token)
 
-    ids = request.form.get("ids")
-    if not ids:
+    uuids = request.form.get("ids")
+    if not uuids:
         return "Missing object ids", 400
 
     zipstream = BytesIO()
     with ZipFile(zipstream, "w") as zip:
-        for uuid in ids.split(";"):
+        for uuid in uuids.split(";"):
             if not uuid: # Id string is empty
                 continue
 
@@ -86,4 +86,15 @@ def get_objects_hdf() -> bytes:
     """
         Retrieve blob data as hdf5 for a given object
     """
+    try:
+        token = check_request_to_token(request)
+    except Exception as e:
+        return e
+    
+    sumo = Explorer("dev", token)
+
+    uuid = request.args.get("id")
+    if not uuid:
+        return "Missing object id", 400
+
     return None
