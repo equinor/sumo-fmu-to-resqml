@@ -4,18 +4,16 @@ from functionality import *
 
 
 
-# Run application
+# Create the application
 app = Flask(__name__)
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
 
+
+# Route endpoints to functions
+app.add_url_rule("/objects/", methods = ["GET"], view_func=get_objects)
+app.add_url_rule("/objects/data", methods = ["GET"], view_func=get_objects_hdf)
+
+app.add_url_rule("/objects/", methods = ["POST"], view_func=get_several_objects)
 
 @app.get("/")
 def hello_world():
     return "<p> Hello world! </p>"
-
-
-app.add_url_rule("/objects/", methods = ["GET"], view_func=get_objects)
-app.add_url_rule("/objects/hdf", methods = ["GET"], view_func=get_objects_hdf)
-
-app.add_url_rule("/objects/", methods = ["POST"], view_func=get_several_objects)

@@ -96,5 +96,18 @@ def get_objects_hdf() -> bytes:
     uuid = request.args.get("id")
     if not uuid:
         return "Missing object id", 400
+    
+    try:
+        metadata = sumo._utils.get_object(uuid)
+    except Exception as e:
+        return f"{e} while searching for object:'{uuid}'.\n\nUse POST for retrieving several objects", 404
 
-    return None
+    match metadata["_source"]["class"]:
+        case "polygons":
+            return sumo.get_polygons_by_uuid(uuid).blob
+        case "surface":
+            return sumo.get_surface_by_uuid(uuid).blob
+        case "table":
+            return sumo.get_table_by_uuid(uuid).blob
+        case _:
+            return f"Data retrieval of {metadata['_source']['class']} currently not supported", 404
