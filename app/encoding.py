@@ -11,7 +11,7 @@ from fmu.sumo.explorer.objects.case import Case
 
 
 
-def json_to_resqml(json_dict : dict) -> any:
+def json_to_resqml(json_dict : dict) -> str:
      """
         Convert json dictionary to resqml string.
      """
@@ -23,7 +23,7 @@ def json_to_resqml(json_dict : dict) -> any:
 
 
 
-def resqml_to_file(resqml : str, path : str):
+def resqml_to_file(resqml : str, path : str) -> None:
      """
         Write resqml data to file. Overwrites existing "`path`" files.
      """
