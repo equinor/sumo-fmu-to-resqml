@@ -1,6 +1,8 @@
 from flask import Flask, request
 
-from functionality import get_objects_functionality, get_several_objects_functionality
+from functionality import *
+
+
 
 # Run application
 app = Flask(__name__)
@@ -21,3 +23,8 @@ def get_objects():
 @app.post("/objects/")
 def get_several_objects():
     return get_several_objects_functionality(request)
+
+
+@app.get("/objects/hdf")
+def get_objects_hdf():
+    return get_objects_hdf_functionality(request)

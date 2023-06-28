@@ -10,23 +10,33 @@ from io import BytesIO
 
 from fmu.sumo.explorer import Explorer
 
-
+def check_request_to_token(request : Request) -> str:
+    """
+        Check that a request is formatted correctly and return the auth token if it exists.
+        Throws exception on error.
+    """
+    token = request.headers.get("Authorization")
+    if not token:
+        yield Exception("Missing authorization token in header", 401)
+    
+    token = token.split(" ")[1]
+    return token
 
 
 def get_objects_functionality(request : Request) -> str:
     """
         Retrieve all unfiltered metadata for a given object.
     """
-    token = request.headers.get("Authorization")
-    if not token:
-        return "Missing authorization token in header", 401
-    
-    token = token.split(" ")[1]
+    try:
+        token = check_request_to_token(request)
+    except Exception as e:
+        return e
+
     sumo = Explorer("dev", token)
 
     uuid = request.args.get("id")
     if not uuid:
-        return "Missing object id", 400
+        yield "Missing object id", 400
 
     try:
         metadata = sumo._utils.get_object(uuid)
@@ -41,11 +51,11 @@ def get_several_objects_functionality(request : Request) -> bytes:
     """
         Retrieve all unfiltered metadata for several given objects.
     """
-    token = request.headers.get("Authorization")
-    if not token:
-        return "Missing authorization token in header", 401
+    try:
+        token = check_request_to_token(request)
+    except Exception as e:
+        return e
     
-    token = token.split(" ")[1]
     sumo = Explorer("dev", token)
 
     ids = request.form.get("ids")
@@ -69,3 +79,10 @@ def get_several_objects_functionality(request : Request) -> bytes:
     zipstream.close()
 
     return output
+
+
+def get_objects_hdf_functionality(request : Request) -> bytes:
+    """
+        Retrieve blob data as hdf5 for a given object
+    """
+    return None
