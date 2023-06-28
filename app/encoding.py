@@ -3,6 +3,7 @@
 # Imports
 import os
 from zipfile import ZipFile
+from io import StringIO
 
 from json2xml import json2xml
 
@@ -31,6 +32,16 @@ def resqml_to_file(resqml : str, path : str):
           f.writelines(resqml)
 
 
+def resqml_to_stream(resqml : str) -> StringIO:
+     """
+          Write resqml data to string stream.
+     """
+     # Open and write to string stream
+     stream = StringIO()
+     stream.writelines(resqml)
+
+     return stream
+
 
 def write_properties_to_zip_file(properties, zipfile, object_type = "unk") -> None:
      """
@@ -49,7 +60,10 @@ def write_properties_to_zip_file(properties, zipfile, object_type = "unk") -> No
 
 
 
-def write_dict_to_zip_file(dict, zipfile, temp_path = "temp.resqml") -> None:
+def write_dict_to_zip_file(dict : dict, zipfile : ZipFile, temp_path = "temp.resqml") -> None:
+     """
+          Write a given dictionary to zip file
+     """
      # Get the resqml data
      resqml_data = json_to_resqml(dict)
 
@@ -61,6 +75,20 @@ def write_dict_to_zip_file(dict, zipfile, temp_path = "temp.resqml") -> None:
 
      #Remove temporary .resqml file
      os.remove(temp_path)
+
+
+def write_dict_to_zip_stream(dict : dict, zipfile : ZipFile, temp_path = "temp.resqml") -> None:
+     """
+          Write a given dictionary to a existing zip. Only uses streams.
+     """
+     # Get the resqml data
+     resqml_data = json_to_resqml(dict)
+
+     # Write it to stream
+     output = resqml_to_stream(resqml_data)
+
+     # Write to zip stream
+     zipfile.writestr(temp_path, output.getvalue())
 
 
 

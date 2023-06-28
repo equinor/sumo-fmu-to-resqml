@@ -1,9 +1,11 @@
 from flask import Flask, send_file, request
 
-from encoding import json_to_resqml, write_dict_to_zip_file
+from encoding import json_to_resqml, write_dict_to_zip_file, write_dict_to_zip_stream
 from zipfile import ZipFile, ZIP_DEFLATED
 from io import BytesIO
 import os
+
+## Test list get on radix
 
 from fmu.sumo.explorer import Explorer
 
@@ -67,7 +69,7 @@ def get_several_objects_alternative():
             except Exception as e:
                 return f"'{e}' while searching for object:'{uuid}'.", 404
         
-            write_dict_to_zip_file(metadata, zip, uuid+".resqml")
+            write_dict_to_zip_stream(metadata, zip, uuid+".resqml")
 
     output = zipstream.getvalue()
     zipstream.close()
