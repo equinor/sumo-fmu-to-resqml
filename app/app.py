@@ -64,6 +64,9 @@ def get_several_objects_alternative():
     zipstream = BytesIO()
     with ZipFile(zipstream, "w") as zip:
         for uuid in ids.split(";"):
+            if not uuid: # Id string is empty
+                continue
+
             try:
                 metadata = sumo._utils.get_object(uuid)
             except Exception as e:
@@ -135,6 +138,9 @@ def get_several_objects_as_resqml():
 
         for id_type in ids_types.split(";"):
             uuid, object_type = id_type.split(",")
+            if not id_type: # Id string is empty
+                continue
+
             #### Explorer.py implements sumo._utils.get_object(uuid) which gets all metadata directly (regardless of type)
             match object_type:
                 case "surface":
