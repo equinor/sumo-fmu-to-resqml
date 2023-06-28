@@ -2,13 +2,15 @@
     All routing/endpoint functionalities
 """
 
-from flask import Request
+from flask import request, Request
 
 from encoding import json_to_resqml, write_dict_to_zip_stream
 from zipfile import ZipFile
 from io import BytesIO
 
 from fmu.sumo.explorer import Explorer
+
+
 
 def check_request_to_token(request : Request) -> str:
     """
@@ -17,13 +19,13 @@ def check_request_to_token(request : Request) -> str:
     """
     token = request.headers.get("Authorization")
     if not token:
-        yield Exception("Missing authorization token in header", 401)
+        raise Exception("Missing authorization token in header", 401)
     
     token = token.split(" ")[1]
     return token
 
 
-def get_objects_functionality(request : Request) -> str:
+def get_objects() -> str:
     """
         Retrieve all unfiltered metadata for a given object.
     """
@@ -36,7 +38,7 @@ def get_objects_functionality(request : Request) -> str:
 
     uuid = request.args.get("id")
     if not uuid:
-        yield "Missing object id", 400
+        return "Missing object id", 400
 
     try:
         metadata = sumo._utils.get_object(uuid)
@@ -46,8 +48,7 @@ def get_objects_functionality(request : Request) -> str:
     return json_to_resqml(metadata)
 
 
-
-def get_several_objects_functionality(request : Request) -> bytes:
+def get_several_objects() -> bytes:
     """
         Retrieve all unfiltered metadata for several given objects.
     """
@@ -81,7 +82,7 @@ def get_several_objects_functionality(request : Request) -> bytes:
     return output
 
 
-def get_objects_hdf_functionality(request : Request) -> bytes:
+def get_objects_hdf() -> bytes:
     """
         Retrieve blob data as hdf5 for a given object
     """

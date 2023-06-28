@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask
 
 from functionality import *
 
@@ -15,16 +15,7 @@ def hello_world():
     return "<p> Hello world! </p>"
 
 
-@app.get("/objects/")
-def get_objects():
-    return get_objects_functionality(request)
+app.add_url_rule("/objects/", methods = ["GET"], view_func=get_objects)
+app.add_url_rule("/objects/hdf", methods = ["GET"], view_func=get_objects_hdf)
 
-
-@app.post("/objects/")
-def get_several_objects():
-    return get_several_objects_functionality(request)
-
-
-@app.get("/objects/hdf")
-def get_objects_hdf():
-    return get_objects_hdf_functionality(request)
+app.add_url_rule("/objects/", methods = ["POST"], view_func=get_several_objects)
