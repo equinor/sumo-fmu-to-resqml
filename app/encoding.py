@@ -130,21 +130,19 @@ def blob_to_hdf5(blob : BytesIO, object_type : str) -> BytesIO:
      stream = BytesIO()
 
      # Convert blob to numpy array (through necessary means)
-     match object_type:
-          case "surface":
-               surface = xtgeo.surface_from_file(blob)
-               surface.to_hdf(stream)
-          case "polygons":
-               df = pd.read_csv(blob, sep=",")
-               column_names = df.columns
-               column_values = df.transpose().values
+     if object_type == "surface":
+          surface = xtgeo.surface_from_file(blob)
+          # Save the xtgeo surface to hdf5 and output to stream
+          surface.to_hdf(stream)
+     else:
+          df = pd.read_csv(blob, sep=",")
+          column_names = df.columns
+          column_values = df.transpose().values
 
-               # Open as new hdf5 file
-               with h5py.File(stream, "w") as f:
-                    for name, column in zip(column_names, column_values):
-                         f.create_dataset(name, data = column)
-          case "table":
-               raise Exception("Not yet implemented")
+          # Open as new hdf5 file (in the stream)
+          with h5py.File(stream, "w") as f:
+               for name, column in zip(column_names, column_values):
+                    f.create_dataset(name, data = list(column)) # Cast to list to better infer types
           
      # DEMO:
      with h5py.File(stream, "r") as f:
