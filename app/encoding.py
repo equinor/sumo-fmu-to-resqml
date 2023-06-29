@@ -142,11 +142,11 @@ def blob_to_hdf5(blob : BytesIO, object_type : str) -> BytesIO:
           # Open as new hdf5 file (in the stream)
           with h5py.File(stream, "w") as f:
                for name, column in zip(column_names, column_values):
-                    f.create_dataset(name, data = list(column)) # Cast to list to better infer types
+                    f.create_dataset(f"{object_type}/{name}", data = list(column)) # Cast to list to better infer types
           
      # DEMO:
      with h5py.File(stream, "r") as f:
-          print("Demonstration:")
+          print("Output:")
           for key in f.keys():
                print(key + ":", f[key])
 
