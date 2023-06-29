@@ -3,7 +3,13 @@
 # Imports
 import os
 from zipfile import ZipFile
-from io import StringIO
+from io import StringIO, BytesIO
+
+import pandas as pd
+import numpy as np
+import h5py
+
+import xtgeo
 
 from json2xml import json2xml
 
@@ -62,7 +68,7 @@ def write_properties_to_zip_file(properties, zipfile, object_type = "unk") -> No
 
 def write_dict_to_zip_file(dict : dict, zipfile : ZipFile, temp_path = "temp.resqml") -> None:
      """
-          Write a given dictionary to zip file
+          Write a given dictionary to zip file.
      """
      # Get the resqml data
      resqml_data = json_to_resqml(dict)
@@ -114,3 +120,36 @@ def case_to_epc_file(case : Case, filename : str) -> None:
           write_properties_to_zip_file(case.polygons, zip, object_type="polygon")
           write_properties_to_zip_file(case.surfaces, zip, object_type="surface")
           write_properties_to_zip_file(case.tables, zip, object_type="table")
+
+
+def blob_to_hdf5(blob : BytesIO, object_type : str) -> BytesIO:
+     """
+          Converts blob file to hdf5.
+     """
+     # Open new Byte stream
+     stream = BytesIO()
+
+     # Convert blob to numpy array (through necessary means)
+     match object_type:
+          case "surface":
+               surface = xtgeo.surface_from_file(blob)
+               surface.to_hdf(stream)
+          case "polygons":
+               df = pd.read_csv(blob, sep=",")
+               column_names = df.columns
+               column_values = df.transpose().values
+
+               # Open as new hdf5 file
+               with h5py.File(stream, "w") as f:
+                    for name, column in zip(column_names, column_values):
+                         f.create_dataset(name, data = column)
+          case "table":
+               raise Exception("Not yet implemented")
+          
+     # DEMO:
+     with h5py.File(stream, "r") as f:
+          print("Demonstration:")
+          for key in f.keys():
+               print(key + ":", f[key])
+
+     return stream.getvalue()

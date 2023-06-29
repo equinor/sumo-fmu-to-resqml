@@ -4,7 +4,7 @@
 
 from flask import request, Request
 
-from encoding import json_to_resqml, write_dict_to_zip_stream
+from encoding import json_to_resqml, write_dict_to_zip_stream, blob_to_hdf5
 from zipfile import ZipFile
 from io import BytesIO
 
@@ -32,7 +32,7 @@ def get_objects() -> str:
     try:
         token = check_request_to_token(request)
     except Exception as e:
-        return e
+        return e.args
 
     sumo = Explorer("dev", token)
 
@@ -43,7 +43,7 @@ def get_objects() -> str:
     try:
         metadata = sumo._utils.get_object(uuid)
     except Exception as e:
-        return f"{e} while searching for object:'{uuid}'.\n\nUse POST for retrieving several objects", 404
+        return f"Error: {e}, while searching for object:'{uuid}'.\n\nUse POST for retrieving several objects", 404
     
     return json_to_resqml(metadata)
 
@@ -55,7 +55,7 @@ def get_several_objects() -> bytes:
     try:
         token = check_request_to_token(request)
     except Exception as e:
-        return e
+        return e.args
     
     sumo = Explorer("dev", token)
 
@@ -72,14 +72,11 @@ def get_several_objects() -> bytes:
             try:
                 metadata = sumo._utils.get_object(uuid)
             except Exception as e:
-                return f"'{e}' while searching for object:'{uuid}'.", 404
+                return f"Error: {e}, while searching for object:'{uuid}'.", 404
         
             write_dict_to_zip_stream(metadata, zip, uuid+".resqml")
 
-    output = zipstream.getvalue()
-    zipstream.close()
-
-    return output
+    return zipstream.getvalue()
 
 
 def get_objects_hdf() -> bytes:
@@ -89,7 +86,7 @@ def get_objects_hdf() -> bytes:
     try:
         token = check_request_to_token(request)
     except Exception as e:
-        return e
+        return e.args
     
     sumo = Explorer("dev", token)
 
@@ -100,14 +97,17 @@ def get_objects_hdf() -> bytes:
     try:
         metadata = sumo._utils.get_object(uuid)
     except Exception as e:
-        return f"{e} while searching for object:'{uuid}'.\n\nUse POST for retrieving several objects", 404
+        return f"Error: {e}, while searching for object:'{uuid}'.\n\nUse POST for retrieving several objects", 404
 
-    match metadata["_source"]["class"]:
+    object_type = metadata["_source"]["class"]
+    match object_type:
         case "polygons":
-            return sumo.get_polygons_by_uuid(uuid).blob
+            blob = sumo.get_polygons_by_uuid(uuid).blob
         case "surface":
-            return sumo.get_surface_by_uuid(uuid).blob
+            blob = sumo.get_surface_by_uuid(uuid).blob
         case "table":
-            return sumo.get_table_by_uuid(uuid).blob
+            blob = sumo.get_table_by_uuid(uuid).blob
         case _:
-            return f"Data retrieval of {metadata['_source']['class']} currently not supported", 404
+            return f"Data retrieval of {object_type} currently not supported", 404
+
+    return blob_to_hdf5(blob, object_type = object_type)
