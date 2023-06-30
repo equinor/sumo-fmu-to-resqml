@@ -122,27 +122,30 @@ def case_to_epc_file(case : Case, filename : str) -> None:
           write_properties_to_zip_file(case.tables, zip, object_type="table")
 
 
-def blob_to_hdf5(blob : BytesIO, object_type : str) -> BytesIO:
+def blobs_to_hdf5(blobs : list[BytesIO], object_types : list[str]) -> bytes:
      """
           Converts blob file to hdf5.
      """
      # Open new Byte stream
      stream = BytesIO()
 
-     # Convert blob to numpy array (through necessary means)
-     if object_type == "surface":
-          surface = xtgeo.surface_from_file(blob)
-          # Save the xtgeo surface to hdf5 and output to stream
-          surface.to_hdf(stream)
-     else:
-          df = pd.read_csv(blob, sep=",")
-          column_names = df.columns
-          column_values = df.transpose().values
+     # Iterate all input
+     for blob, object_type in zip(blobs, object_types):
 
-          # Open as new hdf5 file (in the stream)
-          with h5py.File(stream, "w") as f:
-               for name, column in zip(column_names, column_values):
-                    f.create_dataset(f"{object_type}/{name}", data = list(column)) # Cast to list to better infer types
+          # Convert blob to numpy array (through necessary means)
+          if object_type == "surface":
+               surface = xtgeo.surface_from_file(blob)
+               # Save the xtgeo surface to hdf5 and output to stream
+               surface.to_hdf(stream)
+          else:
+               df = pd.read_csv(blob, sep=",")
+               column_names = df.columns
+               column_values = df.transpose().values
+
+               # Open as new hdf5 file (in the stream)
+               with h5py.File(stream, "w") as f:
+                    for name, column in zip(column_names, column_values):
+                         f.create_dataset(f"{object_type}/{name}", data = list(column)) # Cast to list to better infer types
           
      # DEMO:
      with h5py.File(stream, "r") as f:
