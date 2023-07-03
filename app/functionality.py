@@ -12,8 +12,8 @@ from fmu.sumo.explorer import Explorer
 
 def check_request_to_token(request : Request) -> str:
     """
-        Check that a request is contains a token and returns said auth token if it exists.
-        Throws exception otherwise.
+        Check that a request contains an access token.
+        Returns the token if it exists, raises exception otherwise.
     """
     token = request.headers.get("Authorization")
     if not token:
@@ -24,5 +24,69 @@ def check_request_to_token(request : Request) -> str:
 
 
 def get_resqml():
-    " Get the RESQML data of given objects. This includes both EPC and H5 files. "
-    pass
+    """
+        Get the RESQML data of given objects. This includes both EPC and H5 files.
+
+        Always returns zipped data, as EPC and H5 always come together.
+    """
+
+    # Retrieve the access token from the request, and intialize the sumo explorer
+    try:
+        token = check_request_to_token(request)
+    except Exception as e:
+        return e.args
+    sumo = Explorer("dev", token)
+
+    # Retrieve the given object uuids from the request
+    uuids = request.args.get("uuids")
+    if not uuids:
+        return "Missing object uuids", 400
+    
+
+    return "Endpoint not implemented yet", 501
+
+
+def get_epc():
+    """
+        Get only the EPC files of given objects.
+
+        Returned zipped if requesting for several objects, unzipped otherwise.
+    """
+
+    # Retrieve the access token from the request, and intialize the sumo explorer
+    try:
+        token = check_request_to_token(request)
+    except Exception as e:
+        return e.args
+    sumo = Explorer("dev", token)
+
+    # Retrieve the given object uuids from the request
+    uuids = request.args.get("uuids")
+    if not uuids:
+        return "Missing object uuids", 400
+    
+
+    return "Endpoint not implemented yet", 501
+
+
+def get_hdf():
+    """
+        Get only the H5 files of given objects.
+
+        Returned zipped if requesting for several objects, unzipped otherwise.
+    """
+
+    # Retrieve the access token from the request, and intialize the sumo explorer
+    try:
+        token = check_request_to_token(request)
+    except Exception as e:
+        return e.args
+    sumo = Explorer("dev", token)
+
+    # Retrieve the given object uuids from the request
+    uuids = request.args.get("uuids")
+    if not uuids:
+        return "Missing object uuids", 400
+    
+
+    return "Endpoint not implemented yet", 501
