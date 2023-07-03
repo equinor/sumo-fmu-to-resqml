@@ -4,18 +4,13 @@
 
 from flask import request, Request
 
-from functionality import check_request_to_token
-from _encoding import json_to_resqml, write_dict_to_zip_stream, blobs_to_hdf5
+from functionality import try_get_token
+from _deprecated.deprecated import deprecated
+from _deprecated._encoding import json_to_resqml, write_dict_to_zip_stream, blobs_to_hdf5
 from zipfile import ZipFile
 from io import BytesIO
-from warnings import warn
 
 from fmu.sumo.explorer import Explorer
-
-# Deprecation warning decorator
-def deprecated(func) -> None:
-    warn(f"Function {func.__name__} is deprecated.")
-    return func
 
 
 @deprecated
@@ -24,7 +19,7 @@ def get_objects() -> str:
         Retrieve all unfiltered metadata for a given object.
     """
     try:
-        token = check_request_to_token(request)
+        token = try_get_token(request)
     except Exception as e:
         return e.args
 
@@ -47,7 +42,7 @@ def get_several_objects() -> bytes:
         Retrieve all unfiltered metadata for several given objects.
     """
     try:
-        token = check_request_to_token(request)
+        token = try_get_token(request)
     except Exception as e:
         return e.args
     
@@ -78,7 +73,7 @@ def get_objects_hdf() -> bytes:
         Retrieve blob data as hdf5 for a given object
     """
     try:
-        token = check_request_to_token(request)
+        token = try_get_token(request)
     except Exception as e:
         return e.args
     
@@ -112,7 +107,7 @@ def get_several_objects_hdf() -> bytes:
         Retrieve blob data as hdf5 for several objects
     """
     try:
-        token = check_request_to_token(request)
+        token = try_get_token(request)
     except Exception as e:
         return e.args
     

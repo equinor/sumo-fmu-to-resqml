@@ -5,7 +5,7 @@ import os
 from zipfile import ZipFile
 from io import StringIO, BytesIO
 
-from functionality import deprecated
+from _deprecated.deprecated import deprecated
 
 import pandas as pd
 import numpy as np

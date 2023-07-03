@@ -7,6 +7,8 @@ from flask import request, Request
 from zipfile import ZipFile
 from io import BytesIO
 
+from utility import convert_object_to_resqml, convert_objects_to_resqml
+
 from fmu.sumo.explorer import Explorer
 
 
@@ -37,13 +39,29 @@ def get_resqml() -> bytes:
         return e.args
     sumo = Explorer("dev", token)
 
-    # Retrieve the given object uuids from the request
-    uuids = request.args.get("uuids")
-    if not uuids:
-        return "Missing object uuids", 400
-    
+    # Retrieve the given object uuids from the request 
+    if request.method == "POST":
+        uuids = request.form.get("uuids")
+        if not uuids:
+            return "Missing object uuids", 400
+        uuids = uuids.split(";")
 
-    return "Endpoint not implemented yet", 501
+        epcstream, hdfstream = convert_objects_to_resqml(uuids, sumo)
+    else:
+        uuid = request.args.get("uuid")
+        if not uuid:
+            return "Missing object uuid", 400
+        
+        epcstream, hdfstream = convert_object_to_resqml(uuid, sumo)
+
+    # Zip together both streams
+    zipstream = BytesIO()
+    with ZipFile(zipstream, "w") as zip:
+        zip.writestr("epc", epcstream.getvalue())
+        zip.writestr("hdf", hdfstream.getvalue())
+
+    # Return the byte value of the zip stream
+    return zipstream.getvalue()
 
 
 def get_epc() -> bytes:
@@ -60,13 +78,23 @@ def get_epc() -> bytes:
         return e.args
     sumo = Explorer("dev", token)
 
-    # Retrieve the given object uuids from the request
-    uuids = request.args.get("uuids")
-    if not uuids:
-        return "Missing object uuids", 400
-    
+    # Retrieve the given object uuids from the request 
+    if request.method == "POST":
+        uuids = request.form.get("uuids")
+        if not uuids:
+            return "Missing object uuids", 400
+        uuids = uuids.split(";")
 
-    return "Endpoint not implemented yet", 501
+        epcstream, _ = convert_objects_to_resqml(uuids, sumo)
+    else:
+        uuid = request.args.get("uuid")
+        if not uuid:
+            return "Missing object uuid", 400
+        
+        epcstream, _ = convert_object_to_resqml(uuid, sumo)
+    
+    # Return the byte value of the epc stream
+    return epcstream.getvalue()
 
 
 def get_hdf() -> bytes:
@@ -83,10 +111,20 @@ def get_hdf() -> bytes:
         return e.args
     sumo = Explorer("dev", token)
 
-    # Retrieve the given object uuids from the request
-    uuids = request.args.get("uuids")
-    if not uuids:
-        return "Missing object uuids", 400
-    
+    # Retrieve the given object uuids from the request 
+    if request.method == "POST":
+        uuids = request.form.get("uuids")
+        if not uuids:
+            return "Missing object uuids", 400
+        uuids = uuids.split(";")
 
-    return "Endpoint not implemented yet", 501
+        _, hdfstream = convert_objects_to_resqml(uuids, sumo)
+    else:
+        uuid = request.args.get("uuid")
+        if not uuid:
+            return "Missing object uuid", 400
+        
+        _, hdfstream = convert_object_to_resqml(uuid, sumo)
+    
+    # Return the byte value of the hdf stream
+    return hdfstream.getvalue()

@@ -4,7 +4,7 @@
 import os
 from zipfile import ZipFile
 
-from functionality import deprecated
+from _deprecated.deprecated import deprecated
 
 import xmltodict
 
