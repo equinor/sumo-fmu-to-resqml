@@ -23,7 +23,7 @@ def try_get_token(request : Request) -> str:
     return token
 
 
-def get_resqml():
+def get_resqml() -> bytes:
     """
         Get the RESQML data of given objects. This includes both EPC and H5 files.
 
@@ -46,7 +46,7 @@ def get_resqml():
     return "Endpoint not implemented yet", 501
 
 
-def get_epc():
+def get_epc() -> bytes:
     """
         Get only the EPC files of given objects.
 
@@ -69,7 +69,7 @@ def get_epc():
     return "Endpoint not implemented yet", 501
 
 
-def get_hdf():
+def get_hdf() -> bytes:
     """
         Get only the H5 files of given objects.
 
