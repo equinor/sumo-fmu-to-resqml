@@ -29,7 +29,7 @@ def check_request_to_token(request : Request) -> str:
     token = token.split(" ")[1]
     return token
 
-
+@deprecated
 def get_objects() -> str:
     """
         Retrieve all unfiltered metadata for a given object.
@@ -52,7 +52,7 @@ def get_objects() -> str:
     
     return json_to_resqml(metadata)
 
-
+@deprecated
 def get_several_objects() -> bytes:
     """
         Retrieve all unfiltered metadata for several given objects.
@@ -83,7 +83,7 @@ def get_several_objects() -> bytes:
 
     return zipstream.getvalue()
 
-
+@deprecated
 def get_objects_hdf() -> bytes:
     """
         Retrieve blob data as hdf5 for a given object
@@ -117,7 +117,7 @@ def get_objects_hdf() -> bytes:
         
     return blobs_to_hdf5([blob], [object_type])
 
-
+@deprecated
 def get_several_objects_hdf() -> bytes:
     """
         Retrieve blob data as hdf5 for several objects

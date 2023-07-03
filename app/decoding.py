@@ -4,6 +4,8 @@
 import os
 from zipfile import ZipFile
 
+from functionality import deprecated
+
 import xmltodict
 
 from sumo.wrapper import SumoClient
@@ -14,7 +16,7 @@ from fmu.sumo.explorer.objects.surface import Surface
 from fmu.sumo.explorer.objects.table import Table
 
 
-
+@deprecated
 def read_epc_to_case(filename : str) -> Case:
     """ 
         Reads a given epc file "`filename`.epc" back into a case. 
@@ -64,7 +66,7 @@ def read_epc_to_case(filename : str) -> Case:
     return case
 
 
-
+@deprecated
 def read_xml_to_json(path : str) -> dict:
     """
         Read a given "`path`" resqml or xml file to json dict.
@@ -77,7 +79,7 @@ def read_xml_to_json(path : str) -> dict:
         return prettify_xml_json_dict(json_dict)
 
 
-
+@deprecated
 def prettify_xml_json_dict(json_dict : dict) -> dict:
     """
         Json dicts translated from xml format come with extra "redundant" information like attribute-typing etc. 
@@ -93,7 +95,7 @@ def prettify_xml_json_dict(json_dict : dict) -> dict:
     return pretty_dict
         
 
-
+@deprecated
 def _prettify_helper(child_dict : dict) -> any:
     match child_dict["@type"]:
         case "bool":

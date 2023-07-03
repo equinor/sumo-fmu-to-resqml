@@ -5,6 +5,8 @@ import os
 from zipfile import ZipFile
 from io import StringIO, BytesIO
 
+from functionality import deprecated
+
 import pandas as pd
 import numpy as np
 import h5py
@@ -16,7 +18,7 @@ from json2xml import json2xml
 from fmu.sumo.explorer.objects.case import Case
 
 
-
+@deprecated
 def json_to_resqml(json_dict : dict) -> str:
      """
         Convert json dictionary to resqml string.
@@ -28,7 +30,7 @@ def json_to_resqml(json_dict : dict) -> str:
      return xml_data
 
 
-
+@deprecated
 def resqml_to_file(resqml : str, path : str) -> None:
      """
         Write resqml data to file. Overwrites existing "`path`" files.
@@ -37,7 +39,7 @@ def resqml_to_file(resqml : str, path : str) -> None:
      with open(path, "w") as f:
           f.writelines(resqml)
 
-
+@deprecated
 def resqml_to_stream(resqml : str) -> StringIO:
      """
           Write resqml data to string stream.
@@ -48,7 +50,7 @@ def resqml_to_stream(resqml : str) -> StringIO:
 
      return stream
 
-
+@deprecated
 def write_properties_to_zip_file(properties, zipfile, object_type = "unk") -> None:
      """
           Write all property metadata to existing zipfile.
@@ -65,7 +67,7 @@ def write_properties_to_zip_file(properties, zipfile, object_type = "unk") -> No
           write_dict_to_zip_file(property_metadata, zipfile, temp_path = f"{object_type}{i}.resqml")
 
 
-
+@deprecated
 def write_dict_to_zip_file(dict : dict, zipfile : ZipFile, temp_path = "temp.resqml") -> None:
      """
           Write a given dictionary to zip file.
@@ -82,7 +84,7 @@ def write_dict_to_zip_file(dict : dict, zipfile : ZipFile, temp_path = "temp.res
      #Remove temporary .resqml file
      os.remove(temp_path)
 
-
+@deprecated
 def write_dict_to_zip_stream(dict : dict, zipfile : ZipFile, temp_path = "temp.resqml") -> None:
      """
           Write a given dictionary to a existing zip. Only uses streams.
@@ -97,7 +99,7 @@ def write_dict_to_zip_stream(dict : dict, zipfile : ZipFile, temp_path = "temp.r
      zipfile.writestr(temp_path, output.getvalue())
 
 
-
+@deprecated
 def case_to_epc_file(case : Case, filename : str) -> None:
      """
       Write case metadata to "`filename`.epc" file.
@@ -121,7 +123,7 @@ def case_to_epc_file(case : Case, filename : str) -> None:
           write_properties_to_zip_file(case.surfaces, zip, object_type="surface")
           write_properties_to_zip_file(case.tables, zip, object_type="table")
 
-
+@deprecated
 def blobs_to_hdf5(blobs : list[BytesIO], object_types : list[str]) -> bytes:
      """
           Converts blob file to hdf5.
