@@ -7,9 +7,14 @@ from flask import request, Request
 from encoding import json_to_resqml, write_dict_to_zip_stream, blobs_to_hdf5
 from zipfile import ZipFile
 from io import BytesIO
+from warnings import warn
 
 from fmu.sumo.explorer import Explorer
 
+# Deprecation warning decorator
+def deprecated(func):
+    warn(f"Function {func.__name__} is deprecated.")
+    return func
 
 
 def check_request_to_token(request : Request) -> str:
