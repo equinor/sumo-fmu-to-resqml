@@ -1,6 +1,6 @@
 from flask import Flask
 
-from functionality import *
+from deprecated.functionality import *
 
 
 
