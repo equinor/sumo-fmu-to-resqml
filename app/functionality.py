@@ -10,9 +10,9 @@ from io import BytesIO
 from fmu.sumo.explorer import Explorer
 
 
-def check_request_to_token(request : Request) -> str:
+def try_get_token(request : Request) -> str:
     """
-        Check that a request contains an access token.
+        Try to retrieve an access token from the request.
         Returns the token if it exists, raises exception otherwise.
     """
     token = request.headers.get("Authorization")
@@ -32,7 +32,7 @@ def get_resqml():
 
     # Retrieve the access token from the request, and intialize the sumo explorer
     try:
-        token = check_request_to_token(request)
+        token = try_get_token(request)
     except Exception as e:
         return e.args
     sumo = Explorer("dev", token)
@@ -55,7 +55,7 @@ def get_epc():
 
     # Retrieve the access token from the request, and intialize the sumo explorer
     try:
-        token = check_request_to_token(request)
+        token = try_get_token(request)
     except Exception as e:
         return e.args
     sumo = Explorer("dev", token)
@@ -78,7 +78,7 @@ def get_hdf():
 
     # Retrieve the access token from the request, and intialize the sumo explorer
     try:
-        token = check_request_to_token(request)
+        token = try_get_token(request)
     except Exception as e:
         return e.args
     sumo = Explorer("dev", token)
