@@ -14,6 +14,7 @@ import pandas as pd
 from resqpy.model import Model
 from resqpy.crs import Crs
 from resqpy.surface import Mesh, PointSet
+from resqpy.property import StringLookup
 
 from fmu.sumo.explorer import Explorer
 
@@ -65,7 +66,7 @@ def convert_object_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
         case "polygons":
             return _convert_polygons_to_resqml(uuid, sumo)
         case "table":
-            pass
+            return _convert_table_to_resqml(uuid, sumo)
         case _:
             return f"RESQML conversion of given object type: '{object_type}' not implemented.", 501
 
@@ -161,20 +162,20 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
     # Create Bytestreams for EPC and HDF files
     epcstream, hdfstream = BytesIO(), BytesIO()
 
-    # Instantiate resqpy model of surface
+    # Instantiate resqpy model of polygons
     model = Model(epc_file=TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
 
     # Add mandatory default coordinate reference system
     title = "Default Coordinate Reference System"
     crs = Crs(model, title=title)
 
-    # Add a pointset of the polygonds data
+    # Add a pointset of the polygons data
     df = pd.read_csv(polygons.blob)
 
     title = "Polygons Point Set"
     pointset = PointSet(model, title=title)
 
-    # Append fmu metadata dict to the mesh
+    # Append fmu metadata dict to the pointset
     extra_metadata = metadata
     extra_metadata['uuid'] = polygons.uuid
     pointset.append_extra_metadata(extra_metadata) 
@@ -211,4 +212,48 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
 
         Returns two different bytestreams, first containing an EPC, second a HDF.
     """
-    pass
+    
+    # Temporary filename as resqpy cannot write directly to stream
+    TEMP_FILE_NAME = "table_" + str(uuid)
+
+    # Retrieve table object from explorer
+    table = sumo.get_table_by_uuid(uuid)
+    metadata = table.metadata
+    spec = metadata['data']['spec']
+
+    # Create Bytestreams for EPC and HDF files (hdf will be empty)
+    epcstream, hdfstream = BytesIO(), BytesIO()
+
+    # Instantiate resqpy model of table
+    model = Model(epc_file=TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
+
+    # Add a string lookup table of the table data
+    df = pd.read_csv(table.blob)
+
+    title = "String Table Lookup"
+    stringlu = StringLookup(model, title=title)
+
+    # Load table into dictionary where key is row number (as key in StringLookup has to be integer)
+    tabledict = { i:row for i,row in enumerate(df.values.tolist()) }
+    stringlu.load_from_dict(tabledict)
+
+    # Append fmu metadata dict to the lookup table
+    extra_metadata = metadata
+    extra_metadata['uuid'] = table.uuid
+    stringlu.append_extra_metadata(extra_metadata) 
+
+    # Write out all metadata to the epc file
+    ## NOTE: StringLookup doesn't write to hdf5. Thus all data has to be stored in .epc
+    stringlu.create_xml()
+    model.store_epc(TEMP_FILE_NAME + ".epc")
+
+    # Read from the temporary file into the stream
+    with open(TEMP_FILE_NAME + ".epc", "rb") as epcf:
+        epcstream.write(epcf.read())
+
+    # Remove temporary .epc and .h5 written to by resqpy
+    os.remove(TEMP_FILE_NAME + ".epc")
+    os.remove(TEMP_FILE_NAME + ".h5")
+
+    # Return the bytestreams (even the empty hdf one)
+    return epcstream, hdfstream
