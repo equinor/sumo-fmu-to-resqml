@@ -2,6 +2,8 @@
     All routing/endpoint functionalities
 """
 
+import jwt
+
 from flask import request, Request
 
 from zipfile import ZipFile
@@ -10,6 +12,8 @@ from io import BytesIO
 from utility import convert_object_to_resqml, convert_objects_to_resqml
 
 from fmu.sumo.explorer import Explorer
+
+from time import time
 
 
 def try_get_token(request : Request) -> str:
@@ -22,6 +26,13 @@ def try_get_token(request : Request) -> str:
         raise Exception("Missing authorization token in header", 401)
     
     token = token.split(" ")[1]
+    
+    expires = jwt.decode(token, options={"verify_signature": False})['exp']
+
+    # Verify that token expires in (at least) over 2 minutes
+    if expires < time() - 120:
+        raise Exception("Access_token has expired", 401)
+
     return token
 
 
