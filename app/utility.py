@@ -40,7 +40,8 @@ def convert_objects_to_resqml(uuids : list[str], sumo : Explorer) -> tuple[Bytes
 
             # Insert both those files (bytestreams) into each respective zipstream
             epcf.writestr(f"{uuid}.epc", epc.getvalue())
-            hdff.writestr(f"{uuid}.h5", hdf.getvalue())
+            if len(hdf.getvalue()) > 0: ## Only write hdf file if it actually contains any data
+                hdff.writestr(f"{uuid}.h5", hdf.getvalue())
 
     # Return both zipstreams
     return epcstream, hdfstream
