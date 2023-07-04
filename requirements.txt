@@ -1,9 +1,8 @@
 flask
-json2xml
-xmltodict
-fmu-sumo
-h5py
+
 numpy
 pandas
+
+fmu-sumo
 resqpy
 xtgeo
