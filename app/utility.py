@@ -211,7 +211,7 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     """
         Converts a table object to RESQML form.
 
-        Returns two different bytestreams, first containing an EPC, second a HDF.
+        Returns two different bytestreams, first containing an EPC, second an empty HDF.
     """
     
     # Temporary filename as resqpy cannot write directly to stream
@@ -226,7 +226,7 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     epcstream, hdfstream = BytesIO(), BytesIO()
 
     # Instantiate resqpy model of table
-    model = Model(epc_file=TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
+    model = Model(epc_file=TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = False)
 
     # Add a string lookup table of the table data
     df = pd.read_csv(table.blob)
@@ -252,9 +252,8 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     with open(TEMP_FILE_NAME + ".epc", "rb") as epcf:
         epcstream.write(epcf.read())
 
-    # Remove temporary .epc and .h5 written to by resqpy
+    # Remove temporary .epc written to by resqpy
     os.remove(TEMP_FILE_NAME + ".epc")
-    os.remove(TEMP_FILE_NAME + ".h5")
 
     # Return the bytestreams (even the empty hdf one)
     return epcstream, hdfstream
