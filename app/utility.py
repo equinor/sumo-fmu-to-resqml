@@ -9,10 +9,11 @@ from io import BytesIO
 
 import xtgeo
 import numpy as np
+import pandas as pd
 
 from resqpy.model import Model
 from resqpy.crs import Crs
-from resqpy.surface import Mesh
+from resqpy.surface import Mesh, PointSet
 
 from fmu.sumo.explorer import Explorer
 
@@ -62,7 +63,7 @@ def convert_object_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
         case "surface":
             return _convert_surface_to_resqml(uuid, sumo)
         case "polygons":
-            pass
+            return _convert_polygons_to_resqml(uuid, sumo)
         case "table":
             pass
         case _:
@@ -148,7 +149,60 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
 
         Returns two different bytestreams, first containing an EPC, second a HDF.
     """
-    pass
+    
+    # Temporary filename as resqpy cannot write directly to stream
+    TEMP_FILE_NAME = "polygons_" + str(uuid)
+
+    # Retrieve polygons object from explorer
+    polygons = sumo.get_polygons_by_uuid(uuid)
+    metadata = polygons.metadata
+    spec = metadata['data']['spec']
+
+    # Create Bytestreams for EPC and HDF files
+    epcstream, hdfstream = BytesIO(), BytesIO()
+
+    # Instantiate resqpy model of surface
+    model = Model(epc_file=TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
+
+    # Add mandatory default coordinate reference system
+    title = "Default Coordinate Reference System"
+    crs = Crs(model, title=title)
+
+    # Add a pointset of the polygonds data
+    df = pd.read_csv(polygons.blob)
+
+    title = "Polygons Point Set"
+    pointset = PointSet(model, title=title)
+
+    # Append fmu metadata dict to the mesh
+    extra_metadata = metadata
+    extra_metadata['uuid'] = polygons.uuid
+    pointset.append_extra_metadata(extra_metadata) 
+
+    # Add all different polygons as different patches
+    for id in range(0, spec['npolys']):
+        pointset.add_patch(df.loc[df['ID'] == id].to_numpy()[:, :3])
+
+    # Write out all metadata to the epc file
+    crs.create_xml()
+    pointset.create_xml()
+    model.store_epc(TEMP_FILE_NAME + ".epc")
+
+    # Write data to the hdf5 file
+    pointset.write_hdf5()
+    model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
+
+    # Read from the temporary files into the streams
+    with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
+        epcstream.write(epcf.read())
+        hdfstream.write(hdff.read())
+
+    # Remove temporary .epc and .h5 written to by resqpy
+    os.remove(TEMP_FILE_NAME + ".epc")
+    os.remove(TEMP_FILE_NAME + ".h5")
+
+    # Return the bytestreams
+    return epcstream, hdfstream
 
 
 def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, BytesIO]:
