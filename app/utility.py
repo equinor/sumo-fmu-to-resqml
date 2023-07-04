@@ -182,8 +182,9 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
     pointset.append_extra_metadata(extra_metadata) 
 
     # Add all different polygons as different patches
+    id_string = 'POLY_ID' if 'POLY_ID' in df.columns else 'ID'
     for id in range(0, spec['npolys']):
-        pointset.add_patch(df.loc[df['ID'] == id].to_numpy()[:, :3])
+        pointset.add_patch(df.loc[df[id_string] == id].to_numpy()[:, :3])
 
     # Write out all metadata to the epc file
     crs.create_xml()
