@@ -8,7 +8,7 @@ spec:
       build:
         from: main
   components:
-    - name: fmu-to-resqml-app
+    - name: api
       src: "."
       publicPort: http
       ports:
