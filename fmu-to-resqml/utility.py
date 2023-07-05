@@ -230,7 +230,11 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     model = Model(epc_file=TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = False)
 
     # Add a string lookup table of the table data
-    df = pd.read_csv(table.blob)
+    match metadata['data']['format']:
+        case 'csv':
+            df = pd.read_csv(table.blob)
+        case 'arrow':
+            df = pd.read_parquet(table.blob, engine="pyarrow")
 
     title = "String Table Lookup"
     stringlu = StringLookup(model, title=title)
