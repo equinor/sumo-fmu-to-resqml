@@ -99,13 +99,14 @@ def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, By
     x_offset = spec['xori']
     y_offset = spec['yori']
     rotation = spec['rotation']
-    z_inc_down = bool(spec['yflip'])
+    z_inc_down = bool(spec['yflip']) # Determines "handedness" of coordinate system https://en.wikipedia.org/wiki/Right-hand_rule#Coordinates
     title = "Surface Coordinate Reference System"
 
     crs = Crs(model, x_offset=x_offset, y_offset=y_offset, rotation=rotation, z_inc_down=z_inc_down, title=title)
 
     # Add a mesh (2D grid) of the surface data
     regsurf = xtgeo.surface_from_file(surface.blob)
+    regsurf.values.fill_value = spec['undef']
 
     origin = (0,0,0)
     ni = spec['nrow']
@@ -173,8 +174,9 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
     # Add a pointset of the polygons data
     df = pd.read_csv(polygons.blob)
 
+    crs_uuid = crs.uuid
     title = "Polygons Point Set"
-    pointset = PointSet(model, title=title)
+    pointset = PointSet(model, crs_uuid=crs_uuid, title=title)
 
     # Append fmu metadata dict to the pointset
     extra_metadata = metadata
