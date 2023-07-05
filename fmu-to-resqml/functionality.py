@@ -25,7 +25,10 @@ def try_get_token(request : Request) -> str:
     if not token:
         raise Exception("Missing authorization token in header", 401)
     
-    token = token.split(" ")[1]
+    try:
+        token = token.split(" ")[1]
+    except:
+        raise Exception("Authorization token must be on the form: 'Bearer <token>'", 401)
     
     expires = jwt.decode(token, options={"verify_signature": False})['exp']
 
@@ -56,7 +59,7 @@ def get_resqml() -> bytes:
         if not uuids:
             return "Missing object uuids", 400
         uuids = uuids.split(";")
-
+    
         epcstream, hdfstream = convert_objects_to_resqml(uuids, sumo)
     else:
         uuid = request.args.get("uuid")
@@ -72,7 +75,7 @@ def get_resqml() -> bytes:
         zip.writestr("hdf", hdfstream.getvalue())
 
     # Return the byte value of the zip stream
-    return zipstream.getvalue()
+    return zipstream.getvalue(), 200
 
 
 def get_epc() -> bytes:
