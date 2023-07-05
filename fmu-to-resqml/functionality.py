@@ -4,7 +4,7 @@
 
 import jwt
 
-from flask import request, Request
+from flask import request, Request, Response
 
 from zipfile import ZipFile
 from io import BytesIO
@@ -66,13 +66,13 @@ def get_resqml() -> bytes:
         if not uuid:
             return "Missing object uuid", 400
         
-        epcstream, hdfstream = convert_object_to_resqml(uuid, sumo)
+        epcstream, hdfstream = convert_objects_to_resqml([uuid], sumo)
 
     # Zip together both streams
     zipstream = BytesIO()
     with ZipFile(zipstream, "w") as zip:
-        zip.writestr("epc", epcstream.getvalue())
-        zip.writestr("hdf", hdfstream.getvalue())
+        zip.writestr("epc.zip", epcstream.getvalue())
+        zip.writestr("hdf.zip", hdfstream.getvalue())
 
     # Return the byte value of the zip stream
     return zipstream.getvalue(), 200
@@ -108,7 +108,7 @@ def get_epc() -> bytes:
         epcstream, _ = convert_object_to_resqml(uuid, sumo)
     
     # Return the byte value of the epc stream
-    return epcstream.getvalue()
+    return epcstream.getvalue(), 200
 
 
 def get_hdf() -> bytes:
@@ -141,4 +141,4 @@ def get_hdf() -> bytes:
         _, hdfstream = convert_object_to_resqml(uuid, sumo)
     
     # Return the byte value of the hdf stream
-    return hdfstream.getvalue()
+    return hdfstream.getvalue(), 200
