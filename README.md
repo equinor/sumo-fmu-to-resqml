@@ -22,4 +22,4 @@ This is a service interacting with [fmu-sumo](https://github.com/equinor/fmu-sum
 
 Using GET - Add object uuid as parameter in request arguments using `url/.../?uuid=<object_uuid>`.
 
-Using POST - Add object uuids as parameters in request body using format `{ uuids : <object_1_uuid>;<object_2_uuid>;<object_3_uuid>}`. 
+Using POST - Add object uuids as parameters in request body using format `{ uuids : <object_1_uuid>;<object_2_uuid>;<object_3_uuid> }`. 
