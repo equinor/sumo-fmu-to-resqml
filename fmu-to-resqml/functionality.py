@@ -9,7 +9,7 @@ from flask import request, Request, Response
 from zipfile import ZipFile
 from io import BytesIO
 
-from utility import convert_object_to_resqml, convert_objects_to_resqml
+from utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
 
 from fmu.sumo.explorer import Explorer
 
@@ -150,7 +150,35 @@ def get_ensemble() -> bytes:
 
         Always returns zipped data, as EPC and HDF5 always come together.
     """
-    return "Not implemented yet", 501
+
+    # Retrieve the access token from the request, and intialize the sumo explorer
+    try:
+        token = try_get_token(request)
+    except Exception as e:
+        return e.args
+    sumo = Explorer("dev", token)
+
+    # Retrieve case id from the request
+    uuid = request.form.get("uuid")
+
+    # Retrieve filter information from request
+    iterations = request.form.get("iter").split(";")
+    tagnames = request.form.get("tags").split(";")
+    names = request.form.get("name").split(";")
+
+    # Convert and get the epc and hdf stream containing the wanted data in RESQML format
+    epcstream, hdfstream = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
+
+    # Open a stream to contain the zip data
+    zipstream = BytesIO()
+
+    # Zip together these two files
+    with ZipFile(zipstream, "w") as zip:
+        zip.write(f"{uuid}.epc", epcstream)
+        zip.write(f"{uuid}.h5", hdfstream)
+
+    # Output the zip stream
+    return zipstream
 
 def get_ensemble_epc() -> bytes:
     """

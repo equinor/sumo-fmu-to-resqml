@@ -17,7 +17,82 @@ from resqpy.surface import Mesh, PointSet
 from resqpy.property import StringLookup
 
 from fmu.sumo.explorer import Explorer
+from fmu.sumo.explorer.objects import Surface, Polygons
 
+
+
+def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : list[str], names : list[str], sumo : Explorer) -> tuple[BytesIO, BytesIO]:
+    """
+        Converts an ensemble of a given case object to RESQML format.
+
+        Returns two different zip files, first containing EPC files, second HDF files.
+    """
+
+    # Temporary filename as resqpy cannot write directly to stream
+    TEMP_FILE_NAME = "ensemble_" + str(uuid)
+
+    # Retrieve the case by the case ID
+    case = sumo.get_case_by_uuid(uuid)
+
+    # Create a resqpy model
+    model = Model(epc_file = TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
+
+    # As names are optional, we need a seperate check
+    names = names if len(names) > 0 else True
+
+    # Then we can iterate and add all objects which fit the filters into the RESQML object
+    crss = {}
+    meshes, pointsets = [], []
+
+    # First we do surfaces (meshes)
+    surfaces = case.surfaces.filter(iteration=iterations, tagname=tagnames, name=names)
+    for surface in surfaces:
+        # Ensure that object is a realization
+        if surface.realization == None:
+            continue
+        # If it is, generate and store its mesh
+        meshes.append(_generate_mesh_from_surface(model, surface, crss))
+
+    # Then we do polygons (pointsets)
+    polygonss = case.polygons.filter(iteration=iterations, tagname=tagnames, name=names)
+    for polygons in polygonss:
+        # Ensure that object is a realization
+        if polygons.realization == None:
+            continue
+        # If it is, generate and store its pointset
+        pointsets.append(_generate_pointset_from_polygons)
+
+    # Then we write and store the output of the model into temporary files
+    # Write to epc file
+    for crs in crss.values():
+        crs.create_xml()
+    for mesh in meshes:
+        mesh.create_xml()
+    for pointset in pointsets:
+        pointset.create_xml()
+    model.store_epc(TEMP_FILE_NAME + ".epc")
+
+    # Write to hdf5 file
+    for mesh in meshes:
+        mesh.write_hdf5()
+    for pointset in pointset:
+        pointset.write_hdf5()
+    model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
+        
+    # Open two Bytestreams, one for each filetype
+    epcstream, hdfstream = BytesIO(), BytesIO()
+
+    # Read from the temporary files into the streams
+    with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
+        epcstream.write(epcf.read())
+        hdfstream.write(hdff.read())
+
+    # Remove temporary .epc and .h5 written to by resqpy
+    os.remove(TEMP_FILE_NAME + ".epc")
+    os.remove(TEMP_FILE_NAME + ".h5")
+
+    # Return the two different streams
+    return epcstream, hdfstream
 
 
 def convert_objects_to_resqml(uuids : list[str], sumo : Explorer) -> tuple[BytesIO, BytesIO]:
@@ -70,8 +145,6 @@ def convert_object_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
             return _convert_table_to_resqml(uuid, sumo)
         case _:
             return f"RESQML conversion of given object type: '{object_type}' not implemented.", 501
-
-    pass
 
 
 def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, BytesIO]:
@@ -264,3 +337,93 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
 
     # Return the bytestreams (even the empty hdf one)
     return epcstream, hdfstream
+
+
+def _hash_object_spec(spec : dict) -> int:
+    """
+        Function used for hashing a dictionary.
+    """
+    return hash(frozenset(spec.items()))
+
+def _generate_crs_from_spec(model : Model, spec : dict) -> Crs:
+    """
+        Generate a resqpy Coordinate Reference System contained in the given model from a 'spec' dictionary.
+    """
+    x_offset = spec['xori']
+    y_offset = spec['yori']
+    rotation = spec['rotation']
+    z_inc_down = bool(spec['yflip']) # Determines "handedness" of coordinate system https://en.wikipedia.org/wiki/Right-hand_rule#Coordinates
+    title = "Coordinate Reference System"
+
+    return Crs(model, x_offset=x_offset, y_offset=y_offset, rotation=rotation, z_inc_down=z_inc_down, title=title)
+
+def _generate_mesh_from_surface(model : Model, surface : Surface, crss : dict) -> Mesh:
+    """
+        Generate a resqpy mesh object contained in the given model from a surface object.
+    """
+
+    # Generate the Crs for the surface (Only if another mesh doesn't use the same crs)
+    spec_hash = _hash_object_spec(surface.spec)
+    if spec_hash not in crss:
+        crss[spec_hash] = _generate_crs_from_spec(model, surface.spec)
+
+    # Retrieve the surface's respective crs
+    crs = crss[spec_hash]
+
+    # Create the mesh for the object
+    regsurf = xtgeo.surface_from_file(surface.blob)
+    regsurf.values.fill_value = surface.spec['undef']
+
+    # Here xy(z) -> ij where i = x, j = y dirs
+    origin = (0,0,0)
+    ni = surface.spec['nrow']
+    nj = surface.spec['ncol']
+    dxyz_dij = np.array([[surface.spec['xinc'], 0, 0],
+                         [0, surface.spec['yinc'], 0]])
+    z_values = regsurf.values
+    crs_uuid = crs.uuid
+    title = "Surface Mesh"
+
+    mesh = Mesh(model, z_values=z_values, origin=origin, ni=ni, nj=nj, dxyz_dij=dxyz_dij, crs_uuid=crs_uuid, title=title)
+
+    # Append fmu metadata dict to the mesh
+    extra_metadata = surface.metadata
+    extra_metadata['uuid'] = surface.uuid
+    mesh.append_extra_metadata(extra_metadata)
+
+    # Return the mesh
+    return mesh
+
+
+def _generate_pointset_from_polygons(model : Model, polygons : Polygons, crss : dict) -> PointSet:
+    """
+        Generate a resqpy pointset object contained in the given model from a surface object.
+    """
+
+    # Generate the Crs for the polygons (Only if another mesh doesn't use the same crs)
+    spec_hash = _hash_object_spec(polygons.spec)
+    if spec_hash not in crss:
+        crss[spec_hash] = _generate_crs_from_spec(model, polygons.spec)
+
+    # Retrieve the polygons' respective crs
+    crs = crss[spec_hash]
+
+    # Add a pointset of the polygons data
+    df = pd.read_csv(polygons.blob)
+
+    crs_uuid = crs.uuid
+    title = "Polygons Point Set"
+    pointset = PointSet(model, crs_uuid=crs_uuid, title=title)
+
+    # Append fmu metadata dict to the pointset
+    extra_metadata = polygons.metadata
+    extra_metadata['uuid'] = polygons.uuid
+    pointset.append_extra_metadata(extra_metadata) 
+
+    # Add all different polygons as different patches
+    id_string = 'POLY_ID' if 'POLY_ID' in df.columns else 'ID'
+    for id in range(0, polygons.spec['npolys']):
+        pointset.add_patch(df.loc[df[id_string] == id].to_numpy()[:, :3])
+
+    # Return the pointset
+    return pointset
