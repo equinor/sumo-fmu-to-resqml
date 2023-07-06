@@ -178,7 +178,7 @@ def get_ensemble() -> bytes:
         zip.writestr(f"{uuid}.h5", hdfstream.getvalue())
 
     # Output the zip stream
-    return zipstream
+    return zipstream.getvalue(), 200
 
 def get_ensemble_epc() -> bytes:
     """
