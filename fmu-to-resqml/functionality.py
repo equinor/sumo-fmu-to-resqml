@@ -160,11 +160,24 @@ def get_ensemble() -> bytes:
 
     # Retrieve case id from the request
     uuid = request.form.get("uuid")
+    if not uuid:
+        return "Missing object uuid", 400
 
     # Retrieve filter information from request
-    iterations = request.form.get("iter").split(";")
+    iterations = request.form.get("iter")
+    if not iterations:
+        return "Missing iteration specification", 400
+    iterations = iterations.split(";")
+
     tagnames = request.form.get("tags").split(";")
-    names = request.form.get("name").split(";")
+    if not tagnames:
+        return "Missing tagname specification", 400
+    tagnames = tagnames.split(";")
+
+    names = request.form.get("name")
+    if not names:
+        names = ""
+    names = names.split(";")
 
     # Convert and get the epc and hdf stream containing the wanted data in RESQML format
     epcstream, hdfstream = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
