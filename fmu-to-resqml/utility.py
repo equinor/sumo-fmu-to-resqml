@@ -75,7 +75,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     # Write to hdf5 file
     for mesh in meshes:
         mesh.write_hdf5()
-    for pointset in pointset:
+    for pointset in pointsets:
         pointset.write_hdf5()
     model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
         
