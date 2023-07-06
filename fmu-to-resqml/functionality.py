@@ -169,7 +169,7 @@ def get_ensemble() -> bytes:
         return "Missing iteration specification", 400
     iterations = iterations.split(";")
 
-    tagnames = request.form.get("tags").split(";")
+    tagnames = request.form.get("tags")
     if not tagnames:
         return "Missing tagname specification", 400
     tagnames = tagnames.split(";")
