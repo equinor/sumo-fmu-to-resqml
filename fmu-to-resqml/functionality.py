@@ -142,3 +142,28 @@ def get_hdf() -> bytes:
     
     # Return the byte value of the hdf stream
     return hdfstream.getvalue(), 200
+
+
+def get_ensemble() -> bytes:
+    """
+        Retrieve an EPC and HDF5 file of all realizations given case ID and iteration number.
+
+        Always returns zipped data, as EPC and HDF5 always come together.
+    """
+    return "Not implemented yet", 501
+
+def get_ensemble_epc() -> bytes:
+    """
+        Retrieve an EPC file of all realizations given case ID and iteration number.
+
+        Returns an unzipped EPC file.
+    """
+    return "Not implemented yet", 501
+
+def get_ensemble_hdf() -> bytes:
+    """
+        Retrieve an HDF5 file of all realizations given case ID and iteration number.
+
+        Returns an unzipped HDF5 file.
+    """
+    return "Not implemented yet", 501
