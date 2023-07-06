@@ -174,8 +174,8 @@ def get_ensemble() -> bytes:
 
     # Zip together these two files
     with ZipFile(zipstream, "w") as zip:
-        zip.write(f"{uuid}.epc", epcstream)
-        zip.write(f"{uuid}.h5", hdfstream)
+        zip.writestr(f"{uuid}.epc", epcstream.getvalue())
+        zip.writestr(f"{uuid}.h5", hdfstream.getvalue())
 
     # Output the zip stream
     return zipstream
