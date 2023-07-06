@@ -38,7 +38,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     model = Model(epc_file = TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
 
     # As names are optional, we need a seperate check
-    names = names if len(names) > 0 else True
+    names = names if names != [""] else True
 
     # Then we can iterate and add all objects which fit the filters into the RESQML object
     crss = {}
