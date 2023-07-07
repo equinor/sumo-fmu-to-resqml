@@ -8,8 +8,10 @@ This is a service interacting with [fmu-sumo](https://github.com/equinor/fmu-sum
 
 ### Requests:
 
-* GET - Converting and retrieving one object 
-* POST - Converting and retrieving several objects
+* **POST** - Converting and retrieving an ensemble of realizations within a case
+
+* **GET** - Converting and retrieving one object 
+* **POST** - Converting and retrieving several objects
 
 
 ### Endpoints:
