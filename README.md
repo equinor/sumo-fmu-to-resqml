@@ -26,7 +26,7 @@ This is a service interacting with [fmu-sumo](https://github.com/equinor/fmu-sum
 
 ### Parameters:
 
-### Ensembles:
+#### Ensembles:
 
 Only uses **POST** - Add case uuid and filter specifications as parameters in request body using format `{
     "uuid" : "<case_uuid>",
