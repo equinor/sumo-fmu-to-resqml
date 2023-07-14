@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 
 from functionality import *
 
@@ -6,6 +7,8 @@ from functionality import *
 # Create the application
 app = Flask(__name__)
 
+# Enable CORS for all routes
+CORS(app)
 
 # Route endpoints to functions
 app.add_url_rule("/objects/", methods=["GET", "POST"], endpoint="resqml-retrieval", view_func=get_resqml)
