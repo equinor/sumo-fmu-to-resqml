@@ -35,7 +35,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     try:
         case = sumo.get_case_by_uuid(uuid)
     except Exception as e:
-        raise Exception(e.args, 500)
+        raise Exception(e.args[0], 404)
 
     # Create a resqpy model
     model = Model(epc_file = TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
@@ -136,7 +136,7 @@ def convert_object_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     try:
         object_metadata = sumo._utils.get_object(uuid)
     except Exception as e:
-        raise Exception(e.args, 500)
+        raise Exception(e.args[0], 404)
 
     # Isolate the object_type
     object_type = object_metadata["_source"]["class"]
@@ -167,7 +167,7 @@ def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, By
     try:
         surface = sumo.get_surface_by_uuid(uuid)
     except Exception as e:
-        raise Exception(e.args, 500)
+        raise Exception(e.args[0], 404)
     metadata = surface.metadata
     spec = metadata['data']['spec']
 
@@ -242,7 +242,7 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
     try:
         polygons = sumo.get_polygons_by_uuid(uuid)
     except Exception as e:
-        raise Exception(e.args, 500)
+        raise Exception(e.args[0], 404)
     metadata = polygons.metadata
     spec = metadata['data']['spec']
 
@@ -309,7 +309,7 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     try:
         table = sumo.get_table_by_uuid(uuid)
     except Exception as e:
-        raise Exception(e.args, 500)
+        raise Exception(e.args[0], 404)
     metadata = table.metadata
     spec = metadata['data']['spec']
 
