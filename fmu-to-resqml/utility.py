@@ -144,7 +144,7 @@ def convert_object_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
         case "table":
             return _convert_table_to_resqml(uuid, sumo)
         case _:
-            return f"RESQML conversion of given object type: '{object_type}' not implemented.", 501
+            raise Exception(f"RESQML conversion of given object type: '{object_type}' not implemented.", 501)
 
 
 def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, BytesIO]:
