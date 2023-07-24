@@ -9,6 +9,7 @@ from flask import request, Request, Response
 from zipfile import ZipFile
 from io import BytesIO
 
+from wrappers import handle_exceptions
 from utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
 
 from fmu.sumo.explorer import Explorer
@@ -39,6 +40,7 @@ def try_get_token(request : Request) -> str:
     return token
 
 
+@handle_exceptions
 def get_resqml() -> bytes:
     """
         Get the RESQML data of given objects. This includes both EPC and H5 files.
@@ -59,14 +61,14 @@ def get_resqml() -> bytes:
         if not uuids:
             return "Missing object uuids", 400
         uuids = uuids.split(";")
-    
-        epcstream, hdfstream = convert_objects_to_resqml(uuids, sumo)
     else:
         uuid = request.args.get("uuid")
         if not uuid:
             return "Missing object uuid", 400
-        
-        epcstream, hdfstream = convert_objects_to_resqml([uuid], sumo)
+        uuids = [uuid]
+
+    epcstream, hdfstream = convert_objects_to_resqml(uuids, sumo)
+
 
     # Zip together both streams
     zipstream = BytesIO()
@@ -78,6 +80,7 @@ def get_resqml() -> bytes:
     return zipstream.getvalue(), 200
 
 
+@handle_exceptions
 def get_epc() -> bytes:
     """
         Get only the EPC files of given objects.
@@ -111,6 +114,7 @@ def get_epc() -> bytes:
     return epcstream.getvalue(), 200
 
 
+@handle_exceptions
 def get_hdf() -> bytes:
     """
         Get only the H5 files of given objects.
@@ -144,6 +148,7 @@ def get_hdf() -> bytes:
     return hdfstream.getvalue(), 200
 
 
+@handle_exceptions
 def get_ensemble() -> bytes:
     """
         Retrieve an EPC and HDF5 file of all realizations given case ID and iteration number.
@@ -193,6 +198,8 @@ def get_ensemble() -> bytes:
     # Output the zip stream
     return zipstream.getvalue(), 200
 
+
+@handle_exceptions
 def get_ensemble_epc() -> bytes:
     """
         Retrieve an EPC file of all realizations given case ID and iteration number.
@@ -234,6 +241,8 @@ def get_ensemble_epc() -> bytes:
     # Output the epc stream
     return epcstream.getvalue(), 200
 
+
+@handle_exceptions
 def get_ensemble_hdf() -> bytes:
     """
         Retrieve an HDF5 file of all realizations given case ID and iteration number.
