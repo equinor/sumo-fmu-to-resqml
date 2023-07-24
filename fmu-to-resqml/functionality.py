@@ -42,9 +42,11 @@ def get_resqml() -> bytes:
 
     # Zip together both streams
     zipstream = BytesIO()
-    with ZipFile(zipstream, "w") as zip:
-        zip.writestr("epc.zip", epcstream.getvalue())
-        zip.writestr("hdf.zip", hdfstream.getvalue())
+    with ZipFile(zipstream, "w") as zip, ZipFile(epcstream, "r") as epczip, ZipFile(hdfstream, "r") as hdfzip:
+        for epcname in epczip.namelist():
+            zip.writestr(epcname, epczip.read(epcname))
+        for hdfname in hdfzip.namelist():
+            zip.writestr(hdfname, hdfzip.read(hdfname))
 
     # Return the byte value of the zip stream
     return zipstream.getvalue(), 200
