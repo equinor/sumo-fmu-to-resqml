@@ -2,45 +2,18 @@
     All routing/endpoint functionalities
 """
 
-import jwt
-
-from flask import request, Request, Response
+from flask import request
 
 from zipfile import ZipFile
 from io import BytesIO
 
-from wrappers import handle_exceptions
+from wrappers import verify_token, handle_exceptions
 from utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
 
 from fmu.sumo.explorer import Explorer
 
-from time import time
-
-
-def try_get_token(request : Request) -> str:
-    """
-        Try to retrieve an access token from the request.
-        Returns the token if it exists, raises exception otherwise.
-    """
-    token = request.headers.get("Authorization")
-    if not token:
-        raise Exception("Missing authorization token in header", 401)
-    
-    try:
-        token = token.split(" ")[1]
-    except:
-        raise Exception("Authorization token must be on the form: 'Bearer <token>'", 401)
-    
-    expires = jwt.decode(token, options={"verify_signature": False})['exp']
-
-    # Verify that token expires in (at least) over 2 minutes
-    if expires < time() - 120:
-        raise Exception("Access_token has expired", 401)
-
-    return token
-
-
 @handle_exceptions
+@verify_token
 def get_resqml() -> bytes:
     """
         Get the RESQML data of given objects. This includes both EPC and H5 files.
@@ -48,11 +21,8 @@ def get_resqml() -> bytes:
         Always returns zipped data, as EPC and H5 always come together.
     """
 
-    # Retrieve the access token from the request, and intialize the sumo explorer
-    try:
-        token = try_get_token(request)
-    except Exception as e:
-        return e.args
+    # Initialize the sumo exporer
+    token = request.headers.get("Authorization").split(" ")[1]
     sumo = Explorer("dev", token)
 
     # Retrieve the given object uuids from the request 
@@ -81,6 +51,7 @@ def get_resqml() -> bytes:
 
 
 @handle_exceptions
+@verify_token
 def get_epc() -> bytes:
     """
         Get only the EPC files of given objects.
@@ -88,11 +59,8 @@ def get_epc() -> bytes:
         Returned zipped if requesting for several objects, unzipped otherwise.
     """
 
-    # Retrieve the access token from the request, and intialize the sumo explorer
-    try:
-        token = try_get_token(request)
-    except Exception as e:
-        return e.args
+    # Initialize the sumo exporer
+    token = request.headers.get("Authorization").split(" ")[1]
     sumo = Explorer("dev", token)
 
     # Retrieve the given object uuids from the request 
@@ -115,6 +83,7 @@ def get_epc() -> bytes:
 
 
 @handle_exceptions
+@verify_token
 def get_hdf() -> bytes:
     """
         Get only the H5 files of given objects.
@@ -122,11 +91,8 @@ def get_hdf() -> bytes:
         Returned zipped if requesting for several objects, unzipped otherwise.
     """
 
-    # Retrieve the access token from the request, and intialize the sumo explorer
-    try:
-        token = try_get_token(request)
-    except Exception as e:
-        return e.args
+    # Initialize the sumo exporer
+    token = request.headers.get("Authorization").split(" ")[1]
     sumo = Explorer("dev", token)
 
     # Retrieve the given object uuids from the request 
@@ -149,6 +115,7 @@ def get_hdf() -> bytes:
 
 
 @handle_exceptions
+@verify_token
 def get_ensemble() -> bytes:
     """
         Retrieve an EPC and HDF5 file of all realizations given case ID and iteration number.
@@ -156,11 +123,8 @@ def get_ensemble() -> bytes:
         Always returns zipped data, as EPC and HDF5 always come together.
     """
 
-    # Retrieve the access token from the request, and intialize the sumo explorer
-    try:
-        token = try_get_token(request)
-    except Exception as e:
-        return e.args
+    # Initialize the sumo exporer
+    token = request.headers.get("Authorization").split(" ")[1]
     sumo = Explorer("dev", token)
 
     # Retrieve case id from the request
@@ -200,6 +164,7 @@ def get_ensemble() -> bytes:
 
 
 @handle_exceptions
+@verify_token
 def get_ensemble_epc() -> bytes:
     """
         Retrieve an EPC file of all realizations given case ID and iteration number.
@@ -207,11 +172,8 @@ def get_ensemble_epc() -> bytes:
         Returns an unzipped EPC file.
     """
 
-    # Retrieve the access token from the request, and intialize the sumo explorer
-    try:
-        token = try_get_token(request)
-    except Exception as e:
-        return e.args
+    # Initialize the sumo exporer
+    token = request.headers.get("Authorization").split(" ")[1]
     sumo = Explorer("dev", token)
 
     # Retrieve case id from the request
@@ -243,6 +205,7 @@ def get_ensemble_epc() -> bytes:
 
 
 @handle_exceptions
+@verify_token
 def get_ensemble_hdf() -> bytes:
     """
         Retrieve an HDF5 file of all realizations given case ID and iteration number.
@@ -250,11 +213,8 @@ def get_ensemble_hdf() -> bytes:
         Returns an unzipped HDF5 file.
     """
     
-    # Retrieve the access token from the request, and intialize the sumo explorer
-    try:
-        token = try_get_token(request)
-    except Exception as e:
-        return e.args
+    # Initialize the sumo exporer
+    token = request.headers.get("Authorization").split(" ")[1]
     sumo = Explorer("dev", token)
 
     # Retrieve case id from the request
