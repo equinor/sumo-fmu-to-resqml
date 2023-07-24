@@ -47,8 +47,8 @@ def handle_exceptions(func : any) -> any:
                 raise e            
             status = e.args[1]
 
-            # If the function returns a "Not Found" or "Not Implemented" error
-            if status == 404 or status == 501:
+            # If the function returns a "Unauthorized", "Not Found" or "Not Implemented" error
+            if status in [ 401, 404, 500 ]:
                 return e.args
             
             # If not, raise the exception further
