@@ -32,7 +32,10 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     TEMP_FILE_NAME = "ensemble_" + str(uuid)
 
     # Retrieve the case by the case ID
-    case = sumo.get_case_by_uuid(uuid)
+    try:
+        case = sumo.get_case_by_uuid(uuid)
+    except Exception as e:
+        raise Exception(e.args, 500)
 
     # Create a resqpy model
     model = Model(epc_file = TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
@@ -130,7 +133,10 @@ def convert_object_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     """
 
     # Retrieve all metadata of the given object
-    object_metadata = sumo._utils.get_object(uuid)
+    try:
+        object_metadata = sumo._utils.get_object(uuid)
+    except Exception as e:
+        raise Exception(e.args, 500)
 
     # Isolate the object_type
     object_type = object_metadata["_source"]["class"]
@@ -158,7 +164,10 @@ def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, By
     TEMP_FILE_NAME = "surface_" + str(uuid)
 
     # Retrieve surface object from explorer
-    surface = sumo.get_surface_by_uuid(uuid)
+    try:
+        surface = sumo.get_surface_by_uuid(uuid)
+    except Exception as e:
+        raise Exception(e.args, 500)
     metadata = surface.metadata
     spec = metadata['data']['spec']
 
@@ -230,7 +239,10 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
     TEMP_FILE_NAME = "polygons_" + str(uuid)
 
     # Retrieve polygons object from explorer
-    polygons = sumo.get_polygons_by_uuid(uuid)
+    try:
+        polygons = sumo.get_polygons_by_uuid(uuid)
+    except Exception as e:
+        raise Exception(e.args, 500)
     metadata = polygons.metadata
     spec = metadata['data']['spec']
 
@@ -294,7 +306,10 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     TEMP_FILE_NAME = "table_" + str(uuid)
 
     # Retrieve table object from explorer
-    table = sumo.get_table_by_uuid(uuid)
+    try:
+        table = sumo.get_table_by_uuid(uuid)
+    except Exception as e:
+        raise Exception(e.args, 500)
     metadata = table.metadata
     spec = metadata['data']['spec']
 
