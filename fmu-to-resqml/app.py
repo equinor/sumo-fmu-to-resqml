@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 
-from functionality import *
+from api.functionality import *
 
 
 # Create the application
