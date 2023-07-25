@@ -7,10 +7,11 @@ from flask import request
 from zipfile import ZipFile
 from io import BytesIO
 
-from wrappers import verify_token, handle_exceptions
-from utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
+from api.wrappers import handle_exceptions
+from api.utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
 
 from auth.tokens import get_bearer_token
+from auth.wrappers import verify_token
 
 from fmu.sumo.explorer import Explorer
 
