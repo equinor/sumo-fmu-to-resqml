@@ -8,20 +8,15 @@ from time import time
 
 from flask import request
 
+from auth.tokens import get_bearer_token
+
 
 def verify_token(func : any) -> any:
     """
         Wrapper that verifies that a auth token exists and is valid
     """
     def wrapper(*args, **kwargs):
-        token = request.headers.get("Authorization")
-        if not token:
-            raise Exception("Missing authorization token in header", 401)
-    
-        try:
-            token = token.split(" ")[1]
-        except:
-            raise Exception("Authorization token must be on the form: 'Bearer <token>'", 401)
+        token = get_bearer_token(request)
     
         expires = jwt.decode(token, options={"verify_signature": False})['exp']
 

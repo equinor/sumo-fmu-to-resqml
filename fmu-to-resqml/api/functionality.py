@@ -10,6 +10,8 @@ from io import BytesIO
 from wrappers import verify_token, handle_exceptions
 from utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
 
+from auth.tokens import get_bearer_token
+
 from fmu.sumo.explorer import Explorer
 
 @handle_exceptions
@@ -22,7 +24,7 @@ def get_resqml() -> bytes:
     """
 
     # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
+    token = get_bearer_token(request)
     sumo = Explorer("dev", token)
 
     # Retrieve the given object uuids from the request 
@@ -62,7 +64,7 @@ def get_epc() -> bytes:
     """
 
     # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
+    token = get_bearer_token(request)
     sumo = Explorer("dev", token)
 
     # Retrieve the given object uuids from the request 
@@ -94,7 +96,7 @@ def get_hdf() -> bytes:
     """
 
     # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
+    token = get_bearer_token(request)
     sumo = Explorer("dev", token)
 
     # Retrieve the given object uuids from the request 
@@ -126,7 +128,7 @@ def get_ensemble() -> bytes:
     """
 
     # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
+    token = get_bearer_token(request)
     sumo = Explorer("dev", token)
 
     # Retrieve case id from the request
@@ -175,7 +177,7 @@ def get_ensemble_epc() -> bytes:
     """
 
     # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
+    token = get_bearer_token(request)
     sumo = Explorer("dev", token)
 
     # Retrieve case id from the request
@@ -216,7 +218,7 @@ def get_ensemble_hdf() -> bytes:
     """
     
     # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
+    token = get_bearer_token(request)
     sumo = Explorer("dev", token)
 
     # Retrieve case id from the request
