@@ -4,7 +4,16 @@ metadata:
   name: fmu-to-resqml
 spec:
   environments:
+    - name: prod
+      build:
+        from: main
     - name: dev
+      build:
+        from: main
+    - name: test
+      build:
+        from: main
+    - name: preview
       build:
         from: main
   components:
