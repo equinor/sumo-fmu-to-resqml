@@ -69,7 +69,7 @@ def get_exchange_token(bearer_token : str, client_auth : dict) -> str:
 
 def get_exchange_token_alg(request : Request, environment : str) -> str:
     """
-        Retrieves an exchange token given a request and an environment
+        Retrieves an exchange token to sumo-core given a request and an environment
     """
 
     scopes = {
