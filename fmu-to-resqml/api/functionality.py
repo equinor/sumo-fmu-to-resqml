@@ -10,10 +10,8 @@ from io import BytesIO
 from api.wrappers import handle_exceptions
 from api.utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
 
-from auth.exchange import get_bearer_token
+from auth.exchange import get_explorer
 from auth.wrappers import verify_token
-
-from fmu.sumo.explorer import Explorer
 
 
 
@@ -26,9 +24,8 @@ def get_resqml() -> bytes:
         Always returns zipped data, as EPC and H5 always come together.
     """
 
-    # Initialize the sumo exporer
-    token = get_bearer_token(request)
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
@@ -66,9 +63,8 @@ def get_epc() -> bytes:
         Returned zipped if requesting for several objects, unzipped otherwise.
     """
 
-    # Initialize the sumo exporer
-    token = get_bearer_token(request)
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
@@ -98,9 +94,8 @@ def get_hdf() -> bytes:
         Returned zipped if requesting for several objects, unzipped otherwise.
     """
 
-    # Initialize the sumo exporer
-    token = get_bearer_token(request)
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
@@ -130,9 +125,8 @@ def get_ensemble() -> bytes:
         Always returns zipped data, as EPC and HDF5 always come together.
     """
 
-    # Initialize the sumo exporer
-    token = get_bearer_token(request)
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve case id from the request
     uuid = request.form.get("uuid")
@@ -179,9 +173,8 @@ def get_ensemble_epc() -> bytes:
         Returns an unzipped EPC file.
     """
 
-    # Initialize the sumo exporer
-    token = get_bearer_token(request)
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve case id from the request
     uuid = request.form.get("uuid")
@@ -220,9 +213,8 @@ def get_ensemble_hdf() -> bytes:
         Returns an unzipped HDF5 file.
     """
     
-    # Initialize the sumo exporer
-    token = get_bearer_token(request)
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve case id from the request
     uuid = request.form.get("uuid")

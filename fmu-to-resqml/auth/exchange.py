@@ -6,8 +6,19 @@ import requests
 from os import environ
 
 from flask import Request
+from fmu.sumo.explorer import Explorer
 
 
+
+def get_explorer(request : Request) -> Explorer:
+    """
+        Initialize and retrieve the sumo explorer
+    """
+    env = environ.get("RADIX_ENVIRONMENT")
+    token = get_exchange_token_alg(request, env)
+
+    return Explorer(env, token)
+    
 
 def get_token_from_file() -> str:
     """
@@ -90,7 +101,7 @@ def get_exchange_token_alg(request : Request, environment : str) -> str:
         }
     }
 
-    bearer_token = get_bearer_token()
+    bearer_token = get_bearer_token(request)
     exchange_token = get_exchange_token(bearer_token, client_auth)
 
     return exchange_token
