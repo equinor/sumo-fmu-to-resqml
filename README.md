@@ -22,7 +22,7 @@ This is a service interacting with [fmu-sumo](https://github.com/equinor/fmu-sum
 
 * `url/objects/` - Object converting and retrieving both EPC and HDF5 files zipped.
 * `url/objects/epc` - Object converting and retrieving only EPC files. Will be zipped if using POST.
-* `url/objects/hdf` - Object converting and retrieving only HDF5 files. Will be zipped if using POST.s 
+* `url/objects/hdf` - Object converting and retrieving only HDF5 files. Will be zipped if using POST.
 
 ### Parameters:
 
