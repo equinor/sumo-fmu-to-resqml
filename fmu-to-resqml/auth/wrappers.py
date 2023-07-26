@@ -6,7 +6,7 @@ import jwt
 from time import time
 from flask import request
 
-from auth.tokens import get_bearer_token
+from auth.exchange import get_bearer_token
 
 
 def verify_token(func : any) -> any:

@@ -1,5 +1,5 @@
 """
-    All functions managing tokens
+    All functions managing exchange tokens
 """
 
 import requests
@@ -72,7 +72,6 @@ def get_exchange_token_alg(request : Request, environment : str) -> str:
         Retrieves an exchange token given a request and an environment
     """
 
-    # TODO: Values are currently empty
     scopes = {
         "preview": "api://88d2b022-3539-4dda-9e66-853801334a86/Data.Read",
         "dev": "api://88d2b022-3539-4dda-9e66-853801334a86/Data.Read",
