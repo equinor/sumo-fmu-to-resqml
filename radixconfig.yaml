@@ -4,11 +4,23 @@ metadata:
   name: fmu-to-resqml
 spec:
   environments:
+    - name: prod
+      build:
+        from: main
     - name: dev
+      build:
+        from: main
+    - name: test
+      build:
+        from: main
+    - name: preview
       build:
         from: main
   components:
     - name: api
+      identity:
+        azure:
+          clientId: 8c303b49-e196-41dc-9300-d9e3fb6d04bf
       src: "."
       publicPort: http
       ports:

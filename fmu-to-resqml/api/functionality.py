@@ -7,10 +7,13 @@ from flask import request
 from zipfile import ZipFile
 from io import BytesIO
 
-from wrappers import verify_token, handle_exceptions
-from utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
+from api.wrappers import handle_exceptions
+from api.utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
 
-from fmu.sumo.explorer import Explorer
+from auth.exchange import get_explorer
+from auth.wrappers import verify_token
+
+
 
 @handle_exceptions
 @verify_token
@@ -21,9 +24,8 @@ def get_resqml() -> bytes:
         Always returns zipped data, as EPC and H5 always come together.
     """
 
-    # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
@@ -61,9 +63,8 @@ def get_epc() -> bytes:
         Returned zipped if requesting for several objects, unzipped otherwise.
     """
 
-    # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
@@ -93,9 +94,8 @@ def get_hdf() -> bytes:
         Returned zipped if requesting for several objects, unzipped otherwise.
     """
 
-    # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
@@ -125,9 +125,8 @@ def get_ensemble() -> bytes:
         Always returns zipped data, as EPC and HDF5 always come together.
     """
 
-    # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve case id from the request
     uuid = request.form.get("uuid")
@@ -174,9 +173,8 @@ def get_ensemble_epc() -> bytes:
         Returns an unzipped EPC file.
     """
 
-    # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve case id from the request
     uuid = request.form.get("uuid")
@@ -215,9 +213,8 @@ def get_ensemble_hdf() -> bytes:
         Returns an unzipped HDF5 file.
     """
     
-    # Initialize the sumo exporer
-    token = request.headers.get("Authorization").split(" ")[1]
-    sumo = Explorer("dev", token)
+    # Initialize and get the sumo exporer
+    sumo = get_explorer(request)
 
     # Retrieve case id from the request
     uuid = request.form.get("uuid")
