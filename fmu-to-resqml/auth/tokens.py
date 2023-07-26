@@ -74,10 +74,10 @@ def get_exchange_token_alg(request : Request, environment : str) -> str:
 
     # TODO: Values are currently empty
     scopes = {
-        "preview": "",
-        "dev": "",
-        "test": "",
-        "prod": ""
+        "preview": "api://88d2b022-3539-4dda-9e66-853801334a86/Data.Read",
+        "dev": "api://88d2b022-3539-4dda-9e66-853801334a86/Data.Read",
+        "test": "api://9e5443dd-3431-4690-9617-31eed61cb55a/Data.Read",
+        "prod": "api://9e5443dd-3431-4690-9617-31eed61cb55a/Data.Read",
     }
 
     client_auth = {
