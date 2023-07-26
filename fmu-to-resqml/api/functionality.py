@@ -15,6 +15,8 @@ from auth.wrappers import verify_token
 
 from fmu.sumo.explorer import Explorer
 
+
+
 @handle_exceptions
 @verify_token
 def get_resqml() -> bytes:

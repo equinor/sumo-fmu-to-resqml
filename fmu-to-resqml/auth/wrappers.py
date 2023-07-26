@@ -10,6 +10,7 @@ from flask import request
 from auth.exchange import get_bearer_token
 
 
+
 def verify_token(func : any) -> any:
     """
         Wrapper that verifies that a auth token exists and is valid
