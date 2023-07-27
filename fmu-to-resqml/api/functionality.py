@@ -35,7 +35,6 @@ def get_resqml() -> bytes:
         uuids = body.get("uuids")
         if not uuids:
             return "Missing object uuids", 400
-        uuids = uuids.split(";")
     else:
         uuid = request.args.get("uuid")
         if not uuid:
