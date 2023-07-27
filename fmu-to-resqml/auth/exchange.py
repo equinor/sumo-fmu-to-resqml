@@ -73,7 +73,7 @@ def get_exchange_token(bearer_token : str, client_auth : dict) -> str:
         response = requests.post(client_auth["config"]["endpoint"]["token_url"], url_values).json()
         token = response["access_token"]
     except Exception as e:
-        raise Exception("Error on token-url POST:" + str(e), 500)
+        raise Exception("Error on token-url POST:" + repr(e), 500)
     
     return token
 
