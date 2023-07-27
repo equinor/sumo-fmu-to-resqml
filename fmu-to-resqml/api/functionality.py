@@ -29,6 +29,7 @@ def get_resqml() -> bytes:
 
     # Retrieve the json data from the request body
     body = request.get_json()
+    raise Exception(body)
 
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
