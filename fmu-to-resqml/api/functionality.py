@@ -27,9 +27,12 @@ def get_resqml() -> bytes:
     # Initialize and get the sumo exporer
     sumo = get_explorer(request)
 
+    # Retrieve the json data from the request body
+    body = request.get_json()
+
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
-        uuids = request.form.get("uuids")
+        uuids = body.get("uuids")
         if not uuids:
             return "Missing object uuids", 400
         uuids = uuids.split(";")
