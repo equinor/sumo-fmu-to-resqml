@@ -70,6 +70,7 @@ def get_exchange_token(bearer_token : str, client_auth : dict) -> str:
     }
 
     try:
+        print("Starting request")
         response = requests.post(client_auth["config"]["endpoint"]["token_url"], url_values).json()
         print("Exchange token response:", response)
         token = response["access_token"]
