@@ -68,12 +68,14 @@ def get_epc() -> bytes:
     # Initialize and get the sumo exporer
     sumo = get_explorer(request)
 
+    # Retrieve the json data from the request body
+    body = request.get_json()
+
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
         uuids = request.form.get("uuids")
         if not uuids:
             return "Missing object uuids", 400
-        uuids = uuids.split(";")
 
         epcstream, _ = convert_objects_to_resqml(uuids, sumo)
     else:
@@ -99,12 +101,14 @@ def get_hdf() -> bytes:
     # Initialize and get the sumo exporer
     sumo = get_explorer(request)
 
+    # Retrieve the json data from the request body
+    body = request.get_json()
+
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
         uuids = request.form.get("uuids")
         if not uuids:
             return "Missing object uuids", 400
-        uuids = uuids.split(";")
 
         _, hdfstream = convert_objects_to_resqml(uuids, sumo)
     else:
@@ -130,26 +134,26 @@ def get_ensemble() -> bytes:
     # Initialize and get the sumo exporer
     sumo = get_explorer(request)
 
+    # Retrieve the json data from the request body
+    body = request.get_json()
+
     # Retrieve case id from the request
-    uuid = request.form.get("uuid")
+    uuid = body.get("uuid")
     if not uuid:
         return "Missing object uuid", 400
 
     # Retrieve filter information from request
-    iterations = request.form.get("iter")
+    iterations = body.get("iter")
     if not iterations:
         return "Missing iteration specification", 400
-    iterations = iterations.split(";")
 
-    tagnames = request.form.get("tags")
+    tagnames = body.get("tags")
     if not tagnames:
         return "Missing tagname specification", 400
-    tagnames = tagnames.split(";")
 
-    names = request.form.get("name")
+    names = body.get("name")
     if not names:
         names = ""
-    names = names.split(";")
 
     # Convert and get the epc and hdf stream containing the wanted data in RESQML format
     epcstream, hdfstream = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
@@ -178,26 +182,26 @@ def get_ensemble_epc() -> bytes:
     # Initialize and get the sumo exporer
     sumo = get_explorer(request)
 
+    # Retrieve the json data from the request body
+    body = request.get_json()
+
     # Retrieve case id from the request
-    uuid = request.form.get("uuid")
+    uuid = body.get("uuid")
     if not uuid:
         return "Missing object uuid", 400
 
     # Retrieve filter information from request
-    iterations = request.form.get("iter")
+    iterations = body.get("iter")
     if not iterations:
         return "Missing iteration specification", 400
-    iterations = iterations.split(";")
 
-    tagnames = request.form.get("tags")
+    tagnames = body.get("tags")
     if not tagnames:
         return "Missing tagname specification", 400
-    tagnames = tagnames.split(";")
 
-    names = request.form.get("name")
+    names = body.get("name")
     if not names:
         names = ""
-    names = names.split(";")
 
     # Convert and get the epc stream containing the wanted data in RESQML format
     epcstream, _ = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
@@ -218,26 +222,26 @@ def get_ensemble_hdf() -> bytes:
     # Initialize and get the sumo exporer
     sumo = get_explorer(request)
 
+    # Retrieve the json data from the request body
+    body = request.get_json()
+
     # Retrieve case id from the request
-    uuid = request.form.get("uuid")
+    uuid = body.get("uuid")
     if not uuid:
         return "Missing object uuid", 400
 
     # Retrieve filter information from request
-    iterations = request.form.get("iter")
+    iterations = body.get("iter")
     if not iterations:
         return "Missing iteration specification", 400
-    iterations = iterations.split(";")
 
-    tagnames = request.form.get("tags")
+    tagnames = body.get("tags")
     if not tagnames:
         return "Missing tagname specification", 400
-    tagnames = tagnames.split(";")
 
-    names = request.form.get("name")
+    names = body.get("name")
     if not names:
         names = ""
-    names = names.split(";")
 
     # Convert and get the hdf stream containing the wanted data in RESQML format
     _, hdfstream = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
