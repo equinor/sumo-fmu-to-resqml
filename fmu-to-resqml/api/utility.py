@@ -63,7 +63,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
         if polygons.realization == None:
             continue
         # If it is, generate and store its pointset
-        pointsets.append(_generate_pointset_from_polygons)
+        pointsets.append(_generate_pointset_from_polygons(model, polygons, crss))
 
     # Then we write and store the output of the model into temporary files
     # Write to epc file
