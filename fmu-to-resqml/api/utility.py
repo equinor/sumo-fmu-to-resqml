@@ -42,6 +42,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
 
     # Also add a main CRS to the model
     main_crs = Crs(model, title="Main Coordinate Reference System")
+    main_crs.create_xml()
     model.create_crs_reference(model, main_crs.uuid)
 
     # As names are optional, we need a seperate check
@@ -73,7 +74,6 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     # Write to epc file
 
     raise Exception(list(crss.values())[0].model, list(crss.values())[0].model.parts(), model, model.parts())
-    main_crs.create_xml()
     for crs in crss.values():
         crs.create_xml()
     for mesh in meshes:
