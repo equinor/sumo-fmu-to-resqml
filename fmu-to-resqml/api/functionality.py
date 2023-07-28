@@ -73,7 +73,7 @@ def get_epc() -> bytes:
 
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
-        uuids = request.form.get("uuids")
+        uuids = body.get("uuids")
         if not uuids:
             return "Missing object uuids", 400
 
@@ -106,7 +106,7 @@ def get_hdf() -> bytes:
 
     # Retrieve the given object uuids from the request 
     if request.method == "POST":
-        uuids = request.form.get("uuids")
+        uuids = body.get("uuids")
         if not uuids:
             return "Missing object uuids", 400
 
