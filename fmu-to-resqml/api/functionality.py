@@ -28,7 +28,6 @@ def get_resqml() -> bytes:
     sumo = get_explorer(request)
 
     # Retrieve the json data from the request body
-    raise Exception(request.headers)
     body = request.get_json()
 
     # Retrieve the given object uuids from the request 
