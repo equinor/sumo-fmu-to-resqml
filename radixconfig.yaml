@@ -21,6 +21,13 @@ spec:
       identity:
         azure:
           clientId: 8c303b49-e196-41dc-9300-d9e3fb6d04bf
+      resources:
+            requests:
+              memory: 4096Mi
+              cpu: 1000m
+            limits:
+              memory: 4096Mi
+              cpu: 8000m
       src: "."
       publicPort: http
       ports:
