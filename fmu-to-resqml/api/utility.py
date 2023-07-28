@@ -20,7 +20,8 @@ from fmu.sumo.explorer import Explorer
 from fmu.sumo.explorer.objects import Surface, Polygons
 
 
-
+# TODO: There currently exists an error in this function, closely related to resqpy
+# Sometimes creating an ensemble works, other times not. Unclear why.
 def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : list[str], names : list[str], sumo : Explorer) -> tuple[BytesIO, BytesIO]:
     """
         Converts an ensemble of a given case object to RESQML format.
@@ -71,7 +72,6 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
 
     # Then we write and store the output of the model into temporary files
     # Write to epc file
-    raise Exception([mesh.model for mesh in meshes], [mesh.model.parts() for mesh in meshes], model, model.parts())
     for crs in crss.values():
         crs.create_xml()
     for mesh in meshes:
