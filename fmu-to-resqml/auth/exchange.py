@@ -33,8 +33,11 @@ def get_bearer_token(request : Request) -> str:
     """
         Retrieve the bearer token from a request
     """
-    token = request.headers["Authorization"]
-    if not token:
+    try:
+        token = request.headers["Authorization"]
+        if not token:
+            raise Exception()
+    except:
         raise Exception("Missing authorization token in header", 401)
     
     try:
