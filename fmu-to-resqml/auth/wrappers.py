@@ -24,8 +24,6 @@ def verify_token(func : any) -> any:
         scope = payload["scp"]
         expires = payload["exp"]
 
-        raise Exception(payload)
-
         # Verify that the audience, issuer and scope is correct
         if audience.removeprefix("api://") != environ.get("AZURE_CLIENT_ID"):
             raise Exception("Token is not valid: Invalid audience", 401)
