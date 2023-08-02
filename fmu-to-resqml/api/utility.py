@@ -76,7 +76,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
         # Write to epc file
         for crs in crss.values():
             crs.create_xml()
-        raise Exception(model, len(model.uuids())), len(model.roots()), len(model.parts()))
+        raise Exception(model, len(model.uuids()), len(model.roots()), len(model.parts()))
         for mesh in meshes:
             mesh.create_xml()
         for pointset in pointsets:
