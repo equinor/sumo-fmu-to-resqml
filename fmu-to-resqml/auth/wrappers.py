@@ -3,13 +3,55 @@
 """
 
 import jwt
+import requests
+
 from os import environ
 from time import time
 from flask import request
 
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+
 from auth.exchange import get_bearer_token
 
 
+TENANT = environ.get("AZURE_TENANT_ID")
+AUDIENCE = environ.get("AZURE_CLIENT_ID")
+ISSUER = f"{environ.get('AZURE_AUTHORITY_HOST')}{environ.get('AZURE_TENANT_ID')}/v2.0"
+ALGORITHMS = None
+JWKCLIENT = None
+
+def get_jwkclient():
+    """ 
+        Get a jwk client from jwt
+    """
+    global JWKCLIENT
+    global ALGORITHMS
+    if JWKCLIENT is None:
+        well_known_uri = ISSUER + "/.well-known/openid-configuration"
+        config = requests.get(well_known_uri).json()
+        ALGORITHMS = config["id_token_signing_alg_values_supported"]
+        jwks_uri = config["jwks_uri"]
+        JWKCLIENT = jwt.PyJWKClient(jwks_uri)
+
+    return JWKCLIENT
+
+
+def get_key(token):
+    """
+        Get a key from the jwk client
+    """
+    key = get_jwkclient().get_signing_key_from_jwt(token)
+    pem = (
+        key.key.public_numbers()
+        .public_key(default_backend())
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+    )
+
+    return pem
 
 def verify_token(func : any) -> any:
     """
@@ -17,20 +59,21 @@ def verify_token(func : any) -> any:
     """
     def wrapper(*args, **kwargs):
         token = get_bearer_token(request)
-        payload = jwt.decode(token, options={"verify_signature": False})
+        try:
+            key = get_key(token)
+            payload = jwt.decode(
+                token,
+                algorithms=ALGORITHMS,
+                key=key,
+                audience=AUDIENCE,
+                issuer=ISSUER
+            )
+        except Exception as e:
+            raise Exception(f"Failed to decode token: {e}", 401)
     
-        audience = payload["aud"]
-        issuer = payload["iss"]
         scope = payload["scp"]
         expires = payload["exp"]
-
-        # Verify that the audience, issuer and scope is correct
-        if audience.removeprefix("api://") != environ.get("AZURE_CLIENT_ID"):
-            raise Exception("Token is not valid: Invalid audience", 401)
-        
-        if issuer != f"https://sts.windows.net/{environ.get('AZURE_TENANT_ID')}/":
-            raise Exception("Token is not valid: Invalid issure", 401)
-        
+    
         if scope != "RESQML.Read":
             raise Exception("Token is not valid: Invalid scope", 401)
 
