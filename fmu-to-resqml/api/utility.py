@@ -70,34 +70,37 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
         # If it is, generate and store its pointset
         pointsets.append(_generate_pointset_from_polygons(model, polygons, crss))
 
-    # Then we write and store the output of the model into temporary files
-    # Write to epc file
-    for crs in crss.values():
-        crs.create_xml()
-    for mesh in meshes:
-        mesh.create_xml()
-    for pointset in pointsets:
-        pointset.create_xml()
-    model.store_epc(TEMP_FILE_NAME + ".epc")
+    try:
+        # Then we write and store the output of the model into temporary files
+        # Write to epc file
+        for crs in crss.values():
+            crs.create_xml()
+        for mesh in meshes:
+            mesh.create_xml()
+        for pointset in pointsets:
+            pointset.create_xml()
+        model.store_epc(TEMP_FILE_NAME + ".epc")
 
-    # Write to hdf5 file
-    for mesh in meshes:
-        mesh.write_hdf5()
-    for pointset in pointsets:
-        pointset.write_hdf5()
-    model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
-        
-    # Open two Bytestreams, one for each filetype
-    epcstream, hdfstream = BytesIO(), BytesIO()
+        # Write to hdf5 file
+        for mesh in meshes:
+            mesh.write_hdf5()
+        for pointset in pointsets:
+            pointset.write_hdf5()
+        model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
 
-    # Read from the temporary files into the streams
-    with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
-        epcstream.write(epcf.read())
-        hdfstream.write(hdff.read())
+        # Open two Bytestreams, one for each filetype
+        epcstream, hdfstream = BytesIO(), BytesIO()
 
-    # Remove temporary .epc and .h5 written to by resqpy
-    os.remove(TEMP_FILE_NAME + ".epc")
-    os.remove(TEMP_FILE_NAME + ".h5")
+        # Read from the temporary files into the streams
+        with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
+            epcstream.write(epcf.read())
+            hdfstream.write(hdff.read())
+    except Exception as e:
+        raise Exception(f"Error when writing ensemble to RESQML file: {e}", 500)
+    finally:
+        # Remove temporary .epc and .h5 written to by resqpy
+        os.remove(TEMP_FILE_NAME + ".epc")
+        os.remove(TEMP_FILE_NAME + ".h5")
 
     # Return the two different streams
     return epcstream, hdfstream
@@ -211,23 +214,26 @@ def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, By
     extra_metadata['uuid'] = surface.uuid
     mesh.append_extra_metadata(extra_metadata)
 
-    # Write out all metadata to the epc file
-    crs.create_xml()
-    mesh.create_xml()
-    model.store_epc(TEMP_FILE_NAME + ".epc")
+    try:
+        # Write out all metadata to the epc file
+        crs.create_xml()
+        mesh.create_xml()
+        model.store_epc(TEMP_FILE_NAME + ".epc")
 
-    # Write data to the hdf5 file
-    mesh.write_hdf5()
-    model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
+        # Write data to the hdf5 file
+        mesh.write_hdf5()
+        model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
 
-    # Read from the temporary files into the streams
-    with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
-        epcstream.write(epcf.read())
-        hdfstream.write(hdff.read())
-
-    # Remove temporary .epc and .h5 written to by resqpy
-    os.remove(TEMP_FILE_NAME + ".epc")
-    os.remove(TEMP_FILE_NAME + ".h5")
+        # Read from the temporary files into the streams
+        with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
+            epcstream.write(epcf.read())
+            hdfstream.write(hdff.read())
+    except Exception as e:
+        raise Exception(f"Error when writing surface to RESQML file: {e}", 500)
+    finally:
+        # Remove temporary .epc and .h5 written to by resqpy
+        os.remove(TEMP_FILE_NAME + ".epc")
+        os.remove(TEMP_FILE_NAME + ".h5")
 
     # Return the bytestreams
     return epcstream, hdfstream
@@ -278,23 +284,26 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
     for id in range(0, spec['npolys']):
         pointset.add_patch(df.loc[df[id_string] == id].to_numpy()[:, :3])
 
-    # Write out all metadata to the epc file
-    crs.create_xml()
-    pointset.create_xml()
-    model.store_epc(TEMP_FILE_NAME + ".epc")
+    try:
+        # Write out all metadata to the epc file
+        crs.create_xml()
+        pointset.create_xml()
+        model.store_epc(TEMP_FILE_NAME + ".epc")
 
-    # Write data to the hdf5 file
-    pointset.write_hdf5()
-    model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
+        # Write data to the hdf5 file
+        pointset.write_hdf5()
+        model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
 
-    # Read from the temporary files into the streams
-    with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
-        epcstream.write(epcf.read())
-        hdfstream.write(hdff.read())
-
-    # Remove temporary .epc and .h5 written to by resqpy
-    os.remove(TEMP_FILE_NAME + ".epc")
-    os.remove(TEMP_FILE_NAME + ".h5")
+        # Read from the temporary files into the streams
+        with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
+            epcstream.write(epcf.read())
+            hdfstream.write(hdff.read())
+    except Exception as e:
+        raise Exception(f"Error when writing polygon to RESQML file: {e}", 500)
+    finally:
+        # Remove temporary .epc and .h5 written to by resqpy
+        os.remove(TEMP_FILE_NAME + ".epc")
+        os.remove(TEMP_FILE_NAME + ".h5")
 
     # Return the bytestreams
     return epcstream, hdfstream
@@ -343,17 +352,20 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     extra_metadata['uuid'] = table.uuid
     stringlu.append_extra_metadata(extra_metadata) 
 
-    # Write out all metadata to the epc file
-    ## NOTE: StringLookup doesn't write to hdf5. Thus all data has to be stored in .epc
-    stringlu.create_xml()
-    model.store_epc(TEMP_FILE_NAME + ".epc")
+    try:
+        # Write out all metadata to the epc file
+        ## NOTE: StringLookup doesn't write to hdf5. Thus all data has to be stored in .epc
+        stringlu.create_xml()
+        model.store_epc(TEMP_FILE_NAME + ".epc")
 
-    # Read from the temporary file into the stream
-    with open(TEMP_FILE_NAME + ".epc", "rb") as epcf:
-        epcstream.write(epcf.read())
-
-    # Remove temporary .epc written to by resqpy
-    os.remove(TEMP_FILE_NAME + ".epc")
+        # Read from the temporary file into the stream
+        with open(TEMP_FILE_NAME + ".epc", "rb") as epcf:
+            epcstream.write(epcf.read())
+    except Exception as e:
+        raise Exception(f"Error when writing table to RESQML file: {e}", 500)
+    finally:
+        # Remove temporary .epc written to by resqpy
+        os.remove(TEMP_FILE_NAME + ".epc")
 
     # Return the bytestreams (even the empty hdf one)
     return epcstream, hdfstream
