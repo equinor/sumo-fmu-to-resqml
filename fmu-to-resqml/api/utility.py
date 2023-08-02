@@ -71,6 +71,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
         # If it is, generate and store its pointset
         pointsets.append(_generate_pointset_from_polygons(model, polygons, crss))
 
+    raise Exception(model, model.uuids(), model.roots(), model.parts())
     try:
         # Then we write and store the output of the model into temporary files
         # Write to epc file
