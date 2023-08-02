@@ -2,7 +2,7 @@
 
 FROM python:3.11-slim-buster
 
-RUN apt-get update
+RUN apt-get upgrade
 
 WORKDIR /fmu-to-resqml
 
