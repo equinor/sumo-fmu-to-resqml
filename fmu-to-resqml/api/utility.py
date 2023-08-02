@@ -74,6 +74,8 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     try:
         # Then we write and store the output of the model into temporary files
         # Write to epc file
+        for crs in crss.values():
+            crs.create_xml()
         for mesh in meshes:
             mesh.create_xml()
         for pointset in pointsets:
