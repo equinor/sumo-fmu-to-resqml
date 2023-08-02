@@ -22,6 +22,7 @@ from fmu.sumo.explorer.objects import Surface, Polygons
 
 # TODO: There currently exists an error in this function, closely related to resqpy
 # Sometimes creating an ensemble works, other times not. Unclear why.
+# This error comes from 'mesh.create_xml()' where 'asserts crs_root is not None' fails.
 def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : list[str], names : list[str], sumo : Explorer) -> tuple[BytesIO, BytesIO]:
     """
         Converts an ensemble of a given case object to RESQML format.
