@@ -14,5 +14,5 @@ COPY . .
 
 RUN chown -R 1001:1001 /fmu-to-resqml
 USER 1001
-CMD [ "gunicorn", "-b", "0.0.0.0:5000", "--chdir", "fmu-to-resqml", "wsgi:app" ]
+CMD [ "gunicorn", "-b", "0.0.0.0:5000", "-t", "150", "--chdir", "fmu-to-resqml", "wsgi:app" ]
 EXPOSE 5000
