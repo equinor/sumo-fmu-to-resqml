@@ -42,10 +42,6 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     # Create a resqpy model
     model = Model(epc_file = TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
 
-    # Also add a main CRS to the model
-    main_crs = Crs(model, title="Main Coordinate Reference System")
-    main_crs.create_xml()
-
     # As names are optional, we need a separate check
     names = names if names != [""] else True
 
