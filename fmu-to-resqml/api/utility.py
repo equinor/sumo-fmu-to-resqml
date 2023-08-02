@@ -46,7 +46,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     main_crs = Crs(model, title="Main Coordinate Reference System")
     main_crs.create_xml()
 
-    # As names are optional, we need a seperate check
+    # As names are optional, we need a separate check
     names = names if names != [""] else True
 
     # Then we can iterate and add all objects which fit the filters into the RESQML object
@@ -71,12 +71,12 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
         # If it is, generate and store its pointset
         pointsets.append(_generate_pointset_from_polygons(model, polygons, crss))
 
-    raise Exception(model, model.uuids(), model.roots(), model.parts())
     try:
         # Then we write and store the output of the model into temporary files
         # Write to epc file
         for crs in crss.values():
             crs.create_xml()
+        raise Exception(model, model.uuids(), model.roots(), model.parts())
         for mesh in meshes:
             mesh.create_xml()
         for pointset in pointsets:
