@@ -46,8 +46,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     names = names if names != [""] else True
 
     # Then we can iterate and add all objects which fit the filters into the RESQML object
-    crss = {}
-    meshes, pointsets = [], []
+    crss, meshes, pointsets = [], [], []
 
     # First we do surfaces (meshes)
     surfaces = case.surfaces.filter(iteration=iterations, tagname=tagnames, name=names)
@@ -70,7 +69,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     try:
         # Then we write and store the output of the model into temporary files
         # Write to epc file
-        for crs in crss.values():
+        for crs in crss:
             crs.create_xml()
         for mesh in meshes:
             mesh.create_xml()
@@ -391,13 +390,9 @@ def _generate_mesh_from_surface(model : Model, surface : Surface, crss : dict) -
         Generate a resqpy mesh object contained in the given model from a surface object.
     """
 
-    # Generate the Crs for the surface (Only if another mesh doesn't use the same crs)
-    spec_hash = _hash_object_spec(surface.spec)
-    if spec_hash not in crss:
-        crss[spec_hash] = _generate_crs_from_spec(model, surface.spec)
-
-    # Retrieve the surface's respective crs
-    crs = crss[spec_hash]
+    # Generate the Crs for the surface
+    crs = _generate_crs_from_spec(model, surface.spec)
+    crss.append(crs)
 
     # Create the mesh for the object
     regsurf = xtgeo.surface_from_file(surface.blob)
@@ -429,13 +424,9 @@ def _generate_pointset_from_polygons(model : Model, polygons : Polygons, crss : 
         Generate a resqpy pointset object contained in the given model from a surface object.
     """
 
-    # Generate the Crs for the polygons (Only if another mesh doesn't use the same crs)
-    spec_hash = _hash_object_spec(polygons.spec)
-    if spec_hash not in crss:
-        crss[spec_hash] = _generate_crs_from_spec(model, polygons.spec)
-
-    # Retrieve the polygons' respective crs
-    crs = crss[spec_hash]
+    # Generate the Crs for the polygons
+    crs = _generate_crs_from_spec(model, polygons.spec)
+    crss.append(crs)
 
     # Add a pointset of the polygons data
     df = pd.read_csv(polygons.blob)
