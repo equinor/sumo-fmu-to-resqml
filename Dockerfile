@@ -2,8 +2,6 @@
 
 FROM python:3.11-slim-bullseye
 
-RUN apt-get upgrade
-
 WORKDIR /fmu-to-resqml
 
 COPY requirements.txt requirements.txt
