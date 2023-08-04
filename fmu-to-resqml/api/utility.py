@@ -51,6 +51,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
 
     # First we do surfaces (meshes)
     surfaces = case.surfaces.filter(iteration=iterations, tagname=tagnames, name=names)
+    raise Exception(surfaces)
     for surface in surfaces:
         # Ensure that object is a realization
         if surface.realization == None:
