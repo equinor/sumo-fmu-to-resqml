@@ -152,8 +152,6 @@ def get_ensemble() -> bytes:
         return "Missing tagname specification", 400
 
     names = body.get("name")
-    if not names:
-        names = ""
 
     # Convert and get the epc and hdf stream containing the wanted data in RESQML format
     epcstream, hdfstream = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
@@ -200,8 +198,6 @@ def get_ensemble_epc() -> bytes:
         return "Missing tagname specification", 400
 
     names = body.get("name")
-    if not names:
-        names = ""
 
     # Convert and get the epc stream containing the wanted data in RESQML format
     epcstream, _ = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
@@ -240,8 +236,6 @@ def get_ensemble_hdf() -> bytes:
         return "Missing tagname specification", 400
 
     names = body.get("name")
-    if not names:
-        names = ""
 
     # Convert and get the hdf stream containing the wanted data in RESQML format
     _, hdfstream = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)

@@ -43,7 +43,7 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     model = Model(epc_file = TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
 
     # As names are optional, we need a separate check
-    names = names if names != [""] else True
+    names = names if names else True
 
     # Then we can iterate and add all objects which fit the filters into the RESQML object
     crss = {}
@@ -51,7 +51,6 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
 
     # First we do surfaces (meshes)
     surfaces = case.surfaces.filter(iteration=iterations, tagname=tagnames, name=names)
-    raise Exception(list(surfaces))
     for surface in surfaces:
         # Ensure that object is a realization
         if surface.realization == None:
