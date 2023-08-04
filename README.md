@@ -50,3 +50,51 @@ Using **POST** - Add object uuids as parameters in request body using json objec
     "uuids" : ["<object_1_uuid>", "<object_2_uuid>", "<object_3_uuid>"] 
 }
 ``` 
+
+------------------------------------------------------------------
+
+## Known Issues **!!**
+
+There currently exists and issue with the **ensemble** endpoint.
+
+When requesting smaller ensembles the service works as expected, like; *(this one contains 5 objects)*
+```json
+{
+  "uuid": "c616019d-d344-4094-b2ee-dd4d6d336217",
+  "iter": [
+    "iter-0"
+  ],
+  "tags": [
+    "DS_extract_geogrid",
+    "apstrend_aps_Crevasse_Average"
+  ],
+  "name": [
+  ]
+}
+```
+
+After some wait we get a zip file with a single EPC and HDF5 file back.
+
+However, when requesting larger ensembles, we end up with a Gateway timeout like; *(this one contains 155 objects)*
+```json
+{
+  "uuid": "b90a87fb-6766-457b-9d3b-5ecd442c3e89",
+  "iter": [
+    "iter-0"
+  ],
+  "tags": [
+    "DS_extract_geogrid"
+  ],
+  "name": [
+    "VOLANTIS GP. Top"
+  ]
+}
+```
+
+This is most likely due to cases becoming very large, and resqpy taking a long time converting and formatting the whole ensemble into a single epc file.
+
+For reference, these are the error messages;
+
+![Swagger error message](images/Swagger-error.png)
+
+![Radix error message](images/Radix-error.png)
