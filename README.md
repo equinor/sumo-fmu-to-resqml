@@ -75,7 +75,7 @@ When requesting smaller ensembles the service works as expected, like; *(this on
 
 After some wait we get a zip file with a single EPC and HDF5 file back.
 
-However, when requesting larger ensembles, we end up with a Gateway timeout like; *(this one contains 155 objects)*
+However, we end up with a 504 Gateway Time-out error when requesting larger ensembles, like; *(this one contains 155 objects)*
 ```json
 {
   "uuid": "b90a87fb-6766-457b-9d3b-5ecd442c3e89",
