@@ -23,7 +23,7 @@ spec:
           clientId: 8c303b49-e196-41dc-9300-d9e3fb6d04bf
       resources:
             requests:
-              memory: 400MB
+              memory: 400Mib
               cpu: 100m
             limits:
               memory: 1Gi
