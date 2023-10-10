@@ -23,11 +23,11 @@ spec:
           clientId: 8c303b49-e196-41dc-9300-d9e3fb6d04bf
       resources:
             requests:
-              memory: 4096Mi
-              cpu: 1000m
+              memory: 400MB
+              cpu: 100m
             limits:
-              memory: 4096Mi
-              cpu: 8000m
+              memory: 1Gi
+              cpu: 1000m
       src: "."
       publicPort: http
       ports:
