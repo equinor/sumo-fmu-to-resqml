@@ -10,12 +10,15 @@ spec:
     - name: dev
       build:
         from: main
+      enabled: false
     - name: test
       build:
         from: main
+      enabled: false
     - name: preview
       build:
         from: main
+      enabled: false
   components:
     - name: api
       identity:
