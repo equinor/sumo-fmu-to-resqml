@@ -2,6 +2,8 @@
 
 This is a service interacting with [fmu-sumo](https://github.com/equinor/fmu-sumo) and [resqpy](https://github.com/bp/resqpy) to convert data from FMU (Fast Model Update™) to RESQML format.
 
+Want to contribute? Read our [contributing](./CONTRIBUTING.md) guidelines
+
 ------------------------------------------------------------------
 
 ## API
