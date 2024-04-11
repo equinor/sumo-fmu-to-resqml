@@ -19,9 +19,6 @@ spec:
   components:
     - name: api
       enabled: false
-      environmentConfig:
-        - environment: prod
-          enabled: true
       identity:
         azure:
           clientId: 8c303b49-e196-41dc-9300-d9e3fb6d04bf
