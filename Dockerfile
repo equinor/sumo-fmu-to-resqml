@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.12.5-slim-bullseye
+FROM python:3.12.7-slim-bullseye
 
 WORKDIR /fmu-to-resqml
 
