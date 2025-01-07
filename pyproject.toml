@@ -1,0 +1,41 @@
+[project]
+name = "sumo-fmu-to-resqml"
+requires-python = ">=3.9"
+dynamic = ["version"]
+dependencies = [
+  "flask",
+  "flask_cors",
+  "gunicorn",
+  "numpy",
+  "pandas",
+  "fmu-sumo",
+  "resqpy",
+  "xtgeo",
+  "cryptography",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff", "pre-commit"]
+
+[tool.ruff]
+exclude = [".env", ".git", ".github", ".venv", "venv"]
+
+line-length = 79
+
+[tool.ruff.lint]
+ignore = ["E501", "N802"]
+
+extend-select = [
+  "C4",  # Flake8-comprehensions
+  "I",   # isort
+  "SIM", # Flake8-simplify
+  "TC",  # Flake8-type-checking
+  "TID", # Flake8-tidy-imports
+  "N",   # pep8-naming
+  "PD",  # Pandas
+  "NPY", # NumPy
+]
+
+
+[tool.setuptools]
+packages = ["fmu-to-resqml"]
