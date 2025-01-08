@@ -35,13 +35,13 @@ def get_bearer_token(request: Request) -> str:
     try:
         token = request.headers["Authorization"]
         if not token:
-            raise Exception()
-    except:
+            raise KeyError()
+    except KeyError:
         raise Exception("Missing authorization token in header", 401)
 
     try:
         token = token.split("Bearer ")[1]
-    except:
+    except IndexError:
         raise Exception(
             "Authorization token must be on the form: 'Bearer <token>'", 401
         )

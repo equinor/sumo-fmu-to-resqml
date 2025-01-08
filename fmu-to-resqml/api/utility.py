@@ -35,7 +35,7 @@ def convert_ensemble_to_resqml(
     """
 
     # Temporary filename as resqpy cannot write directly to stream
-    TEMP_FILE_NAME = "ensemble_" + str(uuid)
+    temp_file_name = "ensemble_" + str(uuid)
 
     # Retrieve the case by the case ID
     try:
@@ -45,7 +45,7 @@ def convert_ensemble_to_resqml(
 
     # Create a resqpy model
     model = Model(
-        epc_file=TEMP_FILE_NAME + ".epc",
+        epc_file=temp_file_name + ".epc",
         new_epc=True,
         create_basics=True,
         create_hdf5_ext=True,
@@ -64,7 +64,7 @@ def convert_ensemble_to_resqml(
     )
     for surface in surfaces:
         # Ensure that object is a realization
-        if surface.realization == None:
+        if surface.realization is None:
             continue
         # If it is, generate and store its mesh
         meshes.append(_generate_mesh_from_surface(model, surface, crss))
@@ -75,7 +75,7 @@ def convert_ensemble_to_resqml(
     )
     for polygons in polygonss:
         # Ensure that object is a realization
-        if polygons.realization == None:
+        if polygons.realization is None:
             continue
         # If it is, generate and store its pointset
         pointsets.append(
@@ -85,28 +85,28 @@ def convert_ensemble_to_resqml(
     try:
         # Then we write and store the output of the model into temporary files
         # Write to epc file
-        for crs in crss.values():
+        for crs in crss.to_numpy()():
             crs.create_xml()
         for mesh in meshes:
             mesh.create_xml()
         for pointset in pointsets:
             pointset.create_xml()
-        model.store_epc(TEMP_FILE_NAME + ".epc")
+        model.store_epc(temp_file_name + ".epc")
 
         # Write to hdf5 file
         for mesh in meshes:
             mesh.write_hdf5()
         for pointset in pointsets:
             pointset.write_hdf5()
-        model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
+        model.create_hdf5_ext(file_name=temp_file_name + ".h5")
 
         # Open two Bytestreams, one for each filetype
         epcstream, hdfstream = BytesIO(), BytesIO()
 
         # Read from the temporary files into the streams
         with (
-            open(TEMP_FILE_NAME + ".epc", "rb") as epcf,
-            open(TEMP_FILE_NAME + ".h5", "rb") as hdff,
+            open(temp_file_name + ".epc", "rb") as epcf,
+            open(temp_file_name + ".h5", "rb") as hdff,
         ):
             epcstream.write(epcf.read())
             hdfstream.write(hdff.read())
@@ -116,8 +116,8 @@ def convert_ensemble_to_resqml(
         )
     finally:
         # Remove temporary .epc and .h5 written to by resqpy
-        os.remove(TEMP_FILE_NAME + ".epc")
-        os.remove(TEMP_FILE_NAME + ".h5")
+        os.remove(temp_file_name + ".epc")
+        os.remove(temp_file_name + ".h5")
 
     # Return the two different streams
     return epcstream, hdfstream
@@ -196,7 +196,7 @@ def _convert_surface_to_resqml(
     """
 
     # Temporary filename as resqpy cannot write directly to stream
-    TEMP_FILE_NAME = "surface_" + str(uuid)
+    temp_file_name = "surface_" + str(uuid)
 
     # Retrieve surface object from explorer
     try:
@@ -211,7 +211,7 @@ def _convert_surface_to_resqml(
 
     # Instantiate resqpy model of surface
     model = Model(
-        epc_file=TEMP_FILE_NAME + ".epc",
+        epc_file=temp_file_name + ".epc",
         new_epc=True,
         create_basics=True,
         create_hdf5_ext=True,
@@ -237,13 +237,13 @@ def _convert_surface_to_resqml(
 
     # Add a mesh (2D grid) of the surface data
     regsurf = xtgeo.surface_from_file(surface.blob)
-    regsurf.values.fill_value = spec["undef"]
+    regsurf.to_numpy().fill_value = spec["undef"]
 
     origin = (0, 0, 0)
     ni = spec["nrow"]
     nj = spec["ncol"]
     dxyz_dij = np.array([[spec["xinc"], 0, 0], [0, spec["yinc"], 0]])
-    z_values = regsurf.values
+    z_values = regsurf.to_numpy()
     crs_uuid = crs.uuid
     title = "Surface Mesh"
 
@@ -267,16 +267,16 @@ def _convert_surface_to_resqml(
         # Write out all metadata to the epc file
         crs.create_xml()
         mesh.create_xml()
-        model.store_epc(TEMP_FILE_NAME + ".epc")
+        model.store_epc(temp_file_name + ".epc")
 
         # Write data to the hdf5 file
         mesh.write_hdf5()
-        model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
+        model.create_hdf5_ext(file_name=temp_file_name + ".h5")
 
         # Read from the temporary files into the streams
         with (
-            open(TEMP_FILE_NAME + ".epc", "rb") as epcf,
-            open(TEMP_FILE_NAME + ".h5", "rb") as hdff,
+            open(temp_file_name + ".epc", "rb") as epcf,
+            open(temp_file_name + ".h5", "rb") as hdff,
         ):
             epcstream.write(epcf.read())
             hdfstream.write(hdff.read())
@@ -284,8 +284,8 @@ def _convert_surface_to_resqml(
         raise Exception(f"Error when writing surface to RESQML file: {e}", 500)
     finally:
         # Remove temporary .epc and .h5 written to by resqpy
-        os.remove(TEMP_FILE_NAME + ".epc")
-        os.remove(TEMP_FILE_NAME + ".h5")
+        os.remove(temp_file_name + ".epc")
+        os.remove(temp_file_name + ".h5")
 
     # Return the bytestreams
     return epcstream, hdfstream
@@ -301,7 +301,7 @@ def _convert_polygons_to_resqml(
     """
 
     # Temporary filename as resqpy cannot write directly to stream
-    TEMP_FILE_NAME = "polygons_" + str(uuid)
+    temp_file_name = "polygons_" + str(uuid)
 
     # Retrieve polygons object from explorer
     try:
@@ -316,7 +316,7 @@ def _convert_polygons_to_resqml(
 
     # Instantiate resqpy model of polygons
     model = Model(
-        epc_file=TEMP_FILE_NAME + ".epc",
+        epc_file=temp_file_name + ".epc",
         new_epc=True,
         create_basics=True,
         create_hdf5_ext=True,
@@ -347,16 +347,16 @@ def _convert_polygons_to_resqml(
         # Write out all metadata to the epc file
         crs.create_xml()
         pointset.create_xml()
-        model.store_epc(TEMP_FILE_NAME + ".epc")
+        model.store_epc(temp_file_name + ".epc")
 
         # Write data to the hdf5 file
         pointset.write_hdf5()
-        model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
+        model.create_hdf5_ext(file_name=temp_file_name + ".h5")
 
         # Read from the temporary files into the streams
         with (
-            open(TEMP_FILE_NAME + ".epc", "rb") as epcf,
-            open(TEMP_FILE_NAME + ".h5", "rb") as hdff,
+            open(temp_file_name + ".epc", "rb") as epcf,
+            open(temp_file_name + ".h5", "rb") as hdff,
         ):
             epcstream.write(epcf.read())
             hdfstream.write(hdff.read())
@@ -364,8 +364,8 @@ def _convert_polygons_to_resqml(
         raise Exception(f"Error when writing polygon to RESQML file: {e}", 500)
     finally:
         # Remove temporary .epc and .h5 written to by resqpy
-        os.remove(TEMP_FILE_NAME + ".epc")
-        os.remove(TEMP_FILE_NAME + ".h5")
+        os.remove(temp_file_name + ".epc")
+        os.remove(temp_file_name + ".h5")
 
     # Return the bytestreams
     return epcstream, hdfstream
@@ -381,7 +381,7 @@ def _convert_table_to_resqml(
     """
 
     # Temporary filename as resqpy cannot write directly to stream
-    TEMP_FILE_NAME = "table_" + str(uuid)
+    temp_file_name = "table_" + str(uuid)
 
     # Retrieve table object from explorer
     try:
@@ -389,14 +389,14 @@ def _convert_table_to_resqml(
     except Exception as e:
         raise Exception(e.args[0], 404)
     metadata = table.metadata
-    spec = metadata["data"]["spec"]
+    # spec = metadata["data"]["spec"] # Not used for tables
 
     # Create Bytestreams for EPC and HDF files (hdf will be empty)
     epcstream, hdfstream = BytesIO(), BytesIO()
 
     # Instantiate resqpy model of table
     model = Model(
-        epc_file=TEMP_FILE_NAME + ".epc",
+        epc_file=temp_file_name + ".epc",
         new_epc=True,
         create_basics=True,
         create_hdf5_ext=False,
@@ -413,7 +413,7 @@ def _convert_table_to_resqml(
     stringlu = StringLookup(model, title=title)
 
     # Load table into dictionary where key is row number (as key in StringLookup has to be integer)
-    tabledict = {i: row for i, row in enumerate(df.values.tolist())}
+    tabledict = dict(enumerate(df.to_numpy().tolist()))
     stringlu.load_from_dict(tabledict)
 
     # Append fmu metadata dict to the lookup table
@@ -425,16 +425,16 @@ def _convert_table_to_resqml(
         # Write out all metadata to the epc file
         ## NOTE: StringLookup doesn't write to hdf5. Thus all data has to be stored in .epc
         stringlu.create_xml()
-        model.store_epc(TEMP_FILE_NAME + ".epc")
+        model.store_epc(temp_file_name + ".epc")
 
         # Read from the temporary file into the stream
-        with open(TEMP_FILE_NAME + ".epc", "rb") as epcf:
+        with open(temp_file_name + ".epc", "rb") as epcf:
             epcstream.write(epcf.read())
     except Exception as e:
         raise Exception(f"Error when writing table to RESQML file: {e}", 500)
     finally:
         # Remove temporary .epc written to by resqpy
-        os.remove(TEMP_FILE_NAME + ".epc")
+        os.remove(temp_file_name + ".epc")
 
     # Return the bytestreams (even the empty hdf one)
     return epcstream, hdfstream
@@ -486,7 +486,7 @@ def _generate_mesh_from_surface(
 
     # Create the mesh for the object
     regsurf = xtgeo.surface_from_file(surface.blob)
-    regsurf.values.fill_value = surface.spec["undef"]
+    regsurf.to_numpy().fill_value = surface.spec["undef"]
 
     # Here xy(z) -> ij where i = x, j = y dirs
     origin = (0, 0, 0)
@@ -495,7 +495,7 @@ def _generate_mesh_from_surface(
     dxyz_dij = np.array(
         [[surface.spec["xinc"], 0, 0], [0, surface.spec["yinc"], 0]]
     )
-    z_values = regsurf.values
+    z_values = regsurf.to_numpy()
     crs_uuid = crs.uuid
     title = "Surface Mesh"
 

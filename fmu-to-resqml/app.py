@@ -1,4 +1,11 @@
-from api.functionality import *
+from api.functionality import (
+    get_ensemble,
+    get_ensemble_epc,
+    get_ensemble_hdf,
+    get_epc,
+    get_hdf,
+    get_resqml,
+)
 from flask import Flask
 from flask_cors import CORS
 
