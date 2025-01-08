@@ -1,34 +1,37 @@
 """
-    All utility functions for generating RESQML data from FMU
+All utility functions for generating RESQML data from FMU
 """
 
 import os
-
-from zipfile import ZipFile
 from io import BytesIO
+from zipfile import ZipFile
 
-import xtgeo
 import numpy as np
 import pandas as pd
-
-from resqpy.model import Model
-from resqpy.crs import Crs
-from resqpy.surface import Mesh, PointSet
-from resqpy.property import StringLookup
-
+import xtgeo
 from fmu.sumo.explorer import Explorer
-from fmu.sumo.explorer.objects import Surface, Polygons
+from fmu.sumo.explorer.objects import Polygons, Surface
+from resqpy.crs import Crs
+from resqpy.model import Model
+from resqpy.property import StringLookup
+from resqpy.surface import Mesh, PointSet
 
 
 # TODO: There currently exists an error in this function, closely related to resqpy
 # Sometimes creating an ensemble works, other times not. Most likely due to files becoming large.
 # This error comes from 'mesh.create_xml()' where 'asserts crs_root is not None' fails.
 # Talked more about under 'Known Issues !!' in README.md
-def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : list[str], names : list[str], sumo : Explorer) -> tuple[BytesIO, BytesIO]:
+def convert_ensemble_to_resqml(
+    uuid: str,
+    iterations: list[str],
+    tagnames: list[str],
+    names: list[str],
+    sumo: Explorer,
+) -> tuple[BytesIO, BytesIO]:
     """
-        Converts an ensemble of a given case object to RESQML format.
+    Converts an ensemble of a given case object to RESQML format.
 
-        Returns two different zip files, first containing EPC files, second HDF files.
+    Returns two different zip files, first containing EPC files, second HDF files.
     """
 
     # Temporary filename as resqpy cannot write directly to stream
@@ -41,7 +44,12 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
         raise Exception(e.args[0], 404)
 
     # Create a resqpy model
-    model = Model(epc_file = TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
+    model = Model(
+        epc_file=TEMP_FILE_NAME + ".epc",
+        new_epc=True,
+        create_basics=True,
+        create_hdf5_ext=True,
+    )
 
     # As names are optional, we need a separate check
     names = names if names else True
@@ -51,7 +59,9 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     meshes, pointsets = [], []
 
     # First we do surfaces (meshes)
-    surfaces = case.surfaces.filter(iteration=iterations, tagname=tagnames, name=names)
+    surfaces = case.surfaces.filter(
+        iteration=iterations, tagname=tagnames, name=names
+    )
     for surface in surfaces:
         # Ensure that object is a realization
         if surface.realization == None:
@@ -60,13 +70,17 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
         meshes.append(_generate_mesh_from_surface(model, surface, crss))
 
     # Then we do polygons (pointsets)
-    polygonss = case.polygons.filter(iteration=iterations, tagname=tagnames, name=names)
+    polygonss = case.polygons.filter(
+        iteration=iterations, tagname=tagnames, name=names
+    )
     for polygons in polygonss:
         # Ensure that object is a realization
         if polygons.realization == None:
             continue
         # If it is, generate and store its pointset
-        pointsets.append(_generate_pointset_from_polygons(model, polygons, crss))
+        pointsets.append(
+            _generate_pointset_from_polygons(model, polygons, crss)
+        )
 
     try:
         # Then we write and store the output of the model into temporary files
@@ -90,11 +104,16 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
         epcstream, hdfstream = BytesIO(), BytesIO()
 
         # Read from the temporary files into the streams
-        with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
+        with (
+            open(TEMP_FILE_NAME + ".epc", "rb") as epcf,
+            open(TEMP_FILE_NAME + ".h5", "rb") as hdff,
+        ):
             epcstream.write(epcf.read())
             hdfstream.write(hdff.read())
     except Exception as e:
-        raise Exception(f"Error when writing ensemble to RESQML file: {e}", 500)
+        raise Exception(
+            f"Error when writing ensemble to RESQML file: {e}", 500
+        )
     finally:
         # Remove temporary .epc and .h5 written to by resqpy
         os.remove(TEMP_FILE_NAME + ".epc")
@@ -104,11 +123,13 @@ def convert_ensemble_to_resqml(uuid : str, iterations : list[str], tagnames : li
     return epcstream, hdfstream
 
 
-def convert_objects_to_resqml(uuids : list[str], sumo : Explorer) -> tuple[BytesIO, BytesIO]:
+def convert_objects_to_resqml(
+    uuids: list[str], sumo: Explorer
+) -> tuple[BytesIO, BytesIO]:
     """
-        Converts given objects to RESQML format.
+    Converts given objects to RESQML format.
 
-        Returns two different zip files, first containing EPC files, second HDF files.
+    Returns two different zip files, first containing EPC files, second HDF files.
     """
 
     # Open two Bytestreams, one for each filetype
@@ -116,7 +137,6 @@ def convert_objects_to_resqml(uuids : list[str], sumo : Explorer) -> tuple[Bytes
 
     # Open said Bytestreams as ZipFiles
     with ZipFile(epcstream, "w") as epcf, ZipFile(hdfstream, "w") as hdff:
-        
         # Iterate over all given uuids
         for uuid in uuids:
             # Convert current object to RESQML
@@ -124,18 +144,22 @@ def convert_objects_to_resqml(uuids : list[str], sumo : Explorer) -> tuple[Bytes
 
             # Insert both those files (bytestreams) into each respective zipstream
             epcf.writestr(f"{uuid}.epc", epc.getvalue())
-            if len(hdf.getvalue()) > 0: ## Only write hdf file if it actually contains any data
+            if (
+                len(hdf.getvalue()) > 0
+            ):  ## Only write hdf file if it actually contains any data
                 hdff.writestr(f"{uuid}.h5", hdf.getvalue())
 
     # Return both zipstreams
     return epcstream, hdfstream
 
 
-def convert_object_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, BytesIO]:
+def convert_object_to_resqml(
+    uuid: str, sumo: Explorer
+) -> tuple[BytesIO, BytesIO]:
     """
-        Converts a single object to RESQML format.
+    Converts a single object to RESQML format.
 
-        Returns two different bytestreams, first containing an EPC, second a HDF.
+    Returns two different bytestreams, first containing an EPC, second a HDF.
     """
 
     # Retrieve all metadata of the given object
@@ -156,14 +180,19 @@ def convert_object_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
         case "table":
             return _convert_table_to_resqml(uuid, sumo)
         case _:
-            raise Exception(f"RESQML conversion of given object type: '{object_type}' not implemented.", 501)
+            raise Exception(
+                f"RESQML conversion of given object type: '{object_type}' not implemented.",
+                501,
+            )
 
 
-def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, BytesIO]:
+def _convert_surface_to_resqml(
+    uuid: str, sumo: Explorer
+) -> tuple[BytesIO, BytesIO]:
     """
-        Converts a surface object to RESQML form.
+    Converts a surface object to RESQML form.
 
-        Returns two different bytestreams, first containing an EPC, second a HDF.
+    Returns two different bytestreams, first containing an EPC, second a HDF.
     """
 
     # Temporary filename as resqpy cannot write directly to stream
@@ -175,41 +204,63 @@ def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, By
     except Exception as e:
         raise Exception(e.args[0], 404)
     metadata = surface.metadata
-    spec = metadata['data']['spec']
+    spec = metadata["data"]["spec"]
 
     # Create Bytestreams for EPC and HDF files
     epcstream, hdfstream = BytesIO(), BytesIO()
 
     # Instantiate resqpy model of surface
-    model = Model(epc_file=TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
+    model = Model(
+        epc_file=TEMP_FILE_NAME + ".epc",
+        new_epc=True,
+        create_basics=True,
+        create_hdf5_ext=True,
+    )
 
     # Add a mandatory coordinate reference
-    x_offset = spec['xori']
-    y_offset = spec['yori']
-    rotation = spec['rotation']
-    z_inc_down = bool(spec['yflip']) # Determines "handedness" of coordinate system https://en.wikipedia.org/wiki/Right-hand_rule#Coordinates
+    x_offset = spec["xori"]
+    y_offset = spec["yori"]
+    rotation = spec["rotation"]
+    z_inc_down = bool(
+        spec["yflip"]
+    )  # Determines "handedness" of coordinate system https://en.wikipedia.org/wiki/Right-hand_rule#Coordinates
     title = "Surface Coordinate Reference System"
 
-    crs = Crs(model, x_offset=x_offset, y_offset=y_offset, rotation=rotation, z_inc_down=z_inc_down, title=title)
+    crs = Crs(
+        model,
+        x_offset=x_offset,
+        y_offset=y_offset,
+        rotation=rotation,
+        z_inc_down=z_inc_down,
+        title=title,
+    )
 
     # Add a mesh (2D grid) of the surface data
     regsurf = xtgeo.surface_from_file(surface.blob)
-    regsurf.values.fill_value = spec['undef']
+    regsurf.values.fill_value = spec["undef"]
 
-    origin = (0,0,0)
-    ni = spec['nrow']
-    nj = spec['ncol']
-    dxyz_dij = np.array([[spec['xinc'], 0, 0],
-                         [0, spec['yinc'], 0]])
+    origin = (0, 0, 0)
+    ni = spec["nrow"]
+    nj = spec["ncol"]
+    dxyz_dij = np.array([[spec["xinc"], 0, 0], [0, spec["yinc"], 0]])
     z_values = regsurf.values
     crs_uuid = crs.uuid
     title = "Surface Mesh"
 
-    mesh = Mesh(model, z_values=z_values, origin=origin, ni=ni, nj=nj, dxyz_dij=dxyz_dij, crs_uuid=crs_uuid, title=title)
+    mesh = Mesh(
+        model,
+        z_values=z_values,
+        origin=origin,
+        ni=ni,
+        nj=nj,
+        dxyz_dij=dxyz_dij,
+        crs_uuid=crs_uuid,
+        title=title,
+    )
 
     # Append fmu metadata dict to the mesh
     extra_metadata = metadata
-    extra_metadata['uuid'] = surface.uuid
+    extra_metadata["uuid"] = surface.uuid
     mesh.append_extra_metadata(extra_metadata)
 
     try:
@@ -223,7 +274,10 @@ def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, By
         model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
 
         # Read from the temporary files into the streams
-        with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
+        with (
+            open(TEMP_FILE_NAME + ".epc", "rb") as epcf,
+            open(TEMP_FILE_NAME + ".h5", "rb") as hdff,
+        ):
             epcstream.write(epcf.read())
             hdfstream.write(hdff.read())
     except Exception as e:
@@ -237,13 +291,15 @@ def _convert_surface_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, By
     return epcstream, hdfstream
 
 
-def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, BytesIO]:
+def _convert_polygons_to_resqml(
+    uuid: str, sumo: Explorer
+) -> tuple[BytesIO, BytesIO]:
     """
-        Converts a polygons object to RESQML form.
+    Converts a polygons object to RESQML form.
 
-        Returns two different bytestreams, first containing an EPC, second a HDF.
+    Returns two different bytestreams, first containing an EPC, second a HDF.
     """
-    
+
     # Temporary filename as resqpy cannot write directly to stream
     TEMP_FILE_NAME = "polygons_" + str(uuid)
 
@@ -253,13 +309,18 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
     except Exception as e:
         raise Exception(e.args[0], 404)
     metadata = polygons.metadata
-    spec = metadata['data']['spec']
+    spec = metadata["data"]["spec"]
 
     # Create Bytestreams for EPC and HDF files
     epcstream, hdfstream = BytesIO(), BytesIO()
 
     # Instantiate resqpy model of polygons
-    model = Model(epc_file=TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = True)
+    model = Model(
+        epc_file=TEMP_FILE_NAME + ".epc",
+        new_epc=True,
+        create_basics=True,
+        create_hdf5_ext=True,
+    )
 
     # Add mandatory default coordinate reference system
     title = "Default Coordinate Reference System"
@@ -274,12 +335,12 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
 
     # Append fmu metadata dict to the pointset
     extra_metadata = metadata
-    extra_metadata['uuid'] = polygons.uuid
-    pointset.append_extra_metadata(extra_metadata) 
+    extra_metadata["uuid"] = polygons.uuid
+    pointset.append_extra_metadata(extra_metadata)
 
     # Add all different polygons as different patches
-    id_string = 'POLY_ID' if 'POLY_ID' in df.columns else 'ID'
-    for id in range(0, spec['npolys']):
+    id_string = "POLY_ID" if "POLY_ID" in df.columns else "ID"
+    for id in range(0, spec["npolys"]):
         pointset.add_patch(df.loc[df[id_string] == id].to_numpy()[:, :3])
 
     try:
@@ -293,7 +354,10 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
         model.create_hdf5_ext(file_name=TEMP_FILE_NAME + ".h5")
 
         # Read from the temporary files into the streams
-        with open(TEMP_FILE_NAME + ".epc", "rb") as epcf, open(TEMP_FILE_NAME + ".h5", "rb") as hdff:
+        with (
+            open(TEMP_FILE_NAME + ".epc", "rb") as epcf,
+            open(TEMP_FILE_NAME + ".h5", "rb") as hdff,
+        ):
             epcstream.write(epcf.read())
             hdfstream.write(hdff.read())
     except Exception as e:
@@ -307,13 +371,15 @@ def _convert_polygons_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, B
     return epcstream, hdfstream
 
 
-def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, BytesIO]:
+def _convert_table_to_resqml(
+    uuid: str, sumo: Explorer
+) -> tuple[BytesIO, BytesIO]:
     """
-        Converts a table object to RESQML form.
+    Converts a table object to RESQML form.
 
-        Returns two different bytestreams, first containing an EPC, second an empty HDF.
+    Returns two different bytestreams, first containing an EPC, second an empty HDF.
     """
-    
+
     # Temporary filename as resqpy cannot write directly to stream
     TEMP_FILE_NAME = "table_" + str(uuid)
 
@@ -323,32 +389,37 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     except Exception as e:
         raise Exception(e.args[0], 404)
     metadata = table.metadata
-    spec = metadata['data']['spec']
+    spec = metadata["data"]["spec"]
 
     # Create Bytestreams for EPC and HDF files (hdf will be empty)
     epcstream, hdfstream = BytesIO(), BytesIO()
 
     # Instantiate resqpy model of table
-    model = Model(epc_file=TEMP_FILE_NAME + ".epc", new_epc=True, create_basics = True, create_hdf5_ext = False)
+    model = Model(
+        epc_file=TEMP_FILE_NAME + ".epc",
+        new_epc=True,
+        create_basics=True,
+        create_hdf5_ext=False,
+    )
 
     # Add a string lookup table of the table data
-    match metadata['data']['format']:
-        case 'csv':
+    match metadata["data"]["format"]:
+        case "csv":
             df = pd.read_csv(table.blob)
-        case 'arrow':
+        case "arrow":
             df = pd.read_parquet(table.blob, engine="pyarrow")
 
     title = "String Table Lookup"
     stringlu = StringLookup(model, title=title)
 
     # Load table into dictionary where key is row number (as key in StringLookup has to be integer)
-    tabledict = { i:row for i,row in enumerate(df.values.tolist()) }
+    tabledict = {i: row for i, row in enumerate(df.values.tolist())}
     stringlu.load_from_dict(tabledict)
 
     # Append fmu metadata dict to the lookup table
     extra_metadata = metadata
-    extra_metadata['uuid'] = table.uuid
-    stringlu.append_extra_metadata(extra_metadata) 
+    extra_metadata["uuid"] = table.uuid
+    stringlu.append_extra_metadata(extra_metadata)
 
     try:
         # Write out all metadata to the epc file
@@ -369,27 +440,40 @@ def _convert_table_to_resqml(uuid : str, sumo : Explorer) -> tuple[BytesIO, Byte
     return epcstream, hdfstream
 
 
-def _hash_object_spec(spec : dict) -> int:
+def _hash_object_spec(spec: dict) -> int:
     """
-        Function used for hashing a dictionary.
+    Function used for hashing a dictionary.
     """
     return hash(frozenset(spec.items()))
 
-def _generate_crs_from_spec(model : Model, spec : dict) -> Crs:
+
+def _generate_crs_from_spec(model: Model, spec: dict) -> Crs:
     """
-        Generate a resqpy Coordinate Reference System contained in the given model from a 'spec' dictionary.
+    Generate a resqpy Coordinate Reference System contained in the given model from a 'spec' dictionary.
     """
-    x_offset = spec['xori']
-    y_offset = spec['yori']
-    rotation = spec['rotation']
-    z_inc_down = bool(spec['yflip']) # Determines "handedness" of coordinate system https://en.wikipedia.org/wiki/Right-hand_rule#Coordinates
+    x_offset = spec["xori"]
+    y_offset = spec["yori"]
+    rotation = spec["rotation"]
+    z_inc_down = bool(
+        spec["yflip"]
+    )  # Determines "handedness" of coordinate system https://en.wikipedia.org/wiki/Right-hand_rule#Coordinates
     title = "Coordinate Reference System"
 
-    return Crs(model, x_offset=x_offset, y_offset=y_offset, rotation=rotation, z_inc_down=z_inc_down, title=title)
+    return Crs(
+        model,
+        x_offset=x_offset,
+        y_offset=y_offset,
+        rotation=rotation,
+        z_inc_down=z_inc_down,
+        title=title,
+    )
 
-def _generate_mesh_from_surface(model : Model, surface : Surface, crss : dict) -> Mesh:
+
+def _generate_mesh_from_surface(
+    model: Model, surface: Surface, crss: dict
+) -> Mesh:
     """
-        Generate a resqpy mesh object contained in the given model from a surface object.
+    Generate a resqpy mesh object contained in the given model from a surface object.
     """
 
     # Generate the Crs for the surface (Only if another mesh doesn't use the same crs)
@@ -402,32 +486,44 @@ def _generate_mesh_from_surface(model : Model, surface : Surface, crss : dict) -
 
     # Create the mesh for the object
     regsurf = xtgeo.surface_from_file(surface.blob)
-    regsurf.values.fill_value = surface.spec['undef']
+    regsurf.values.fill_value = surface.spec["undef"]
 
     # Here xy(z) -> ij where i = x, j = y dirs
-    origin = (0,0,0)
-    ni = surface.spec['nrow']
-    nj = surface.spec['ncol']
-    dxyz_dij = np.array([[surface.spec['xinc'], 0, 0],
-                         [0, surface.spec['yinc'], 0]])
+    origin = (0, 0, 0)
+    ni = surface.spec["nrow"]
+    nj = surface.spec["ncol"]
+    dxyz_dij = np.array(
+        [[surface.spec["xinc"], 0, 0], [0, surface.spec["yinc"], 0]]
+    )
     z_values = regsurf.values
     crs_uuid = crs.uuid
     title = "Surface Mesh"
 
-    mesh = Mesh(model, z_values=z_values, origin=origin, ni=ni, nj=nj, dxyz_dij=dxyz_dij, crs_uuid=crs_uuid, title=title)
+    mesh = Mesh(
+        model,
+        z_values=z_values,
+        origin=origin,
+        ni=ni,
+        nj=nj,
+        dxyz_dij=dxyz_dij,
+        crs_uuid=crs_uuid,
+        title=title,
+    )
 
     # Append fmu metadata dict to the mesh
     extra_metadata = surface.metadata
-    extra_metadata['uuid'] = surface.uuid
+    extra_metadata["uuid"] = surface.uuid
     mesh.append_extra_metadata(extra_metadata)
 
     # Return the mesh
     return mesh
 
 
-def _generate_pointset_from_polygons(model : Model, polygons : Polygons, crss : dict) -> PointSet:
+def _generate_pointset_from_polygons(
+    model: Model, polygons: Polygons, crss: dict
+) -> PointSet:
     """
-        Generate a resqpy pointset object contained in the given model from a surface object.
+    Generate a resqpy pointset object contained in the given model from a surface object.
     """
 
     # Generate the Crs for the polygons (Only if another mesh doesn't use the same crs)
@@ -447,12 +543,12 @@ def _generate_pointset_from_polygons(model : Model, polygons : Polygons, crss : 
 
     # Append fmu metadata dict to the pointset
     extra_metadata = polygons.metadata
-    extra_metadata['uuid'] = polygons.uuid
-    pointset.append_extra_metadata(extra_metadata) 
+    extra_metadata["uuid"] = polygons.uuid
+    pointset.append_extra_metadata(extra_metadata)
 
     # Add all different polygons as different patches
-    id_string = 'POLY_ID' if 'POLY_ID' in df.columns else 'ID'
-    for id in range(0, polygons.spec['npolys']):
+    id_string = "POLY_ID" if "POLY_ID" in df.columns else "ID"
+    for id in range(0, polygons.spec["npolys"]):
         pointset.add_patch(df.loc[df[id_string] == id].to_numpy()[:, :3])
 
     # Return the pointset

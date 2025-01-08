@@ -1,19 +1,16 @@
 """
-    All auth wrapper functions
+All auth wrapper functions
 """
-
-import jwt
-import requests
 
 from os import environ
 from time import time
-from flask import request
 
+import jwt
+import requests
+from auth.exchange import get_bearer_token
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-
-from auth.exchange import get_bearer_token
-
+from flask import request
 
 TENANT = environ.get("AZURE_TENANT_ID")
 AUDIENCE = environ.get("AZURE_CLIENT_ID")
@@ -21,9 +18,10 @@ ISSUER = f"{environ.get('AZURE_AUTHORITY_HOST')}{environ.get('AZURE_TENANT_ID')}
 ALGORITHMS = None
 JWKCLIENT = None
 
+
 def get_jwkclient():
-    """ 
-        Get a jwk client from jwt
+    """
+    Get a jwk client from jwt
     """
     global JWKCLIENT
     global ALGORITHMS
@@ -39,7 +37,7 @@ def get_jwkclient():
 
 def get_key(token):
     """
-        Get a key from the jwk client
+    Get a key from the jwk client
     """
     key = get_jwkclient().get_signing_key_from_jwt(token)
     pem = (
@@ -47,16 +45,18 @@ def get_key(token):
         .public_key(default_backend())
         .public_bytes(
             encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
     )
 
     return pem
 
-def verify_token(func : any) -> any:
+
+def verify_token(func: any) -> any:
     """
-        Wrapper that verifies that a auth token exists and is valid
+    Wrapper that verifies that a auth token exists and is valid
     """
+
     def wrapper(*args, **kwargs):
         token = get_bearer_token(request)
         try:
@@ -66,14 +66,14 @@ def verify_token(func : any) -> any:
                 algorithms=ALGORITHMS,
                 key=key,
                 audience=AUDIENCE,
-                issuer=ISSUER
+                issuer=ISSUER,
             )
         except Exception as e:
             raise Exception(f"Failed to decode token: {e}", 401)
-    
+
         scope = payload["scp"]
         expires = payload["exp"]
-    
+
         if scope != "RESQML.Read":
             raise Exception("Token is not valid: Invalid scope", 401)
 
