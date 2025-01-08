@@ -19,11 +19,10 @@ dev = ["pytest", "ruff", "pre-commit"]
 
 [tool.ruff]
 exclude = [".env", ".git", ".github", ".venv", "venv"]
-
 line-length = 79
 
 [tool.ruff.lint]
-ignore = ["E501", "N802"]
+ignore = ["PD901"]
 
 extend-select = [
   "C4",  # Flake8-comprehensions
@@ -36,6 +35,8 @@ extend-select = [
   "NPY", # NumPy
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["F401"]
 
 [tool.setuptools]
 packages = ["fmu-to-resqml"]
