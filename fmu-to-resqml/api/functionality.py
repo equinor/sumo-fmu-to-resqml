@@ -1,27 +1,28 @@
 """
-    All routing/endpoint functionalities
+All routing/endpoint functionalities
 """
 
-from flask import request
-
-from zipfile import ZipFile
 from io import BytesIO
+from zipfile import ZipFile
 
+from api.utility import (
+    convert_ensemble_to_resqml,
+    convert_object_to_resqml,
+    convert_objects_to_resqml,
+)
 from api.wrappers import handle_exceptions
-from api.utility import convert_object_to_resqml, convert_objects_to_resqml, convert_ensemble_to_resqml
-
 from auth.exchange import get_explorer
 from auth.wrappers import verify_token
-
+from flask import request
 
 
 @handle_exceptions
 @verify_token
 def get_resqml() -> bytes:
     """
-        Get the RESQML data of given objects. This includes both EPC and H5 files.
+    Get the RESQML data of given objects. This includes both EPC and H5 files.
 
-        Always returns zipped data, as EPC and H5 always come together.
+    Always returns zipped data, as EPC and H5 always come together.
     """
 
     # Initialize and get the sumo exporer
@@ -30,7 +31,7 @@ def get_resqml() -> bytes:
     # Retrieve the json data from the request body
     body = request.get_json()
 
-    # Retrieve the given object uuids from the request 
+    # Retrieve the given object uuids from the request
     if request.method == "POST":
         uuids = body.get("uuids")
         if not uuids:
@@ -43,10 +44,13 @@ def get_resqml() -> bytes:
 
     epcstream, hdfstream = convert_objects_to_resqml(uuids, sumo)
 
-
     # Zip together both streams
     zipstream = BytesIO()
-    with ZipFile(zipstream, "w") as zip, ZipFile(epcstream, "r") as epczip, ZipFile(hdfstream, "r") as hdfzip:
+    with (
+        ZipFile(zipstream, "w") as zip,
+        ZipFile(epcstream, "r") as epczip,
+        ZipFile(hdfstream, "r") as hdfzip,
+    ):
         for epcname in epczip.namelist():
             zip.writestr(epcname, epczip.read(epcname))
         for hdfname in hdfzip.namelist():
@@ -60,9 +64,9 @@ def get_resqml() -> bytes:
 @verify_token
 def get_epc() -> bytes:
     """
-        Get only the EPC files of given objects.
+    Get only the EPC files of given objects.
 
-        Returned zipped if requesting for several objects, unzipped otherwise.
+    Returned zipped if requesting for several objects, unzipped otherwise.
     """
 
     # Initialize and get the sumo exporer
@@ -71,7 +75,7 @@ def get_epc() -> bytes:
     # Retrieve the json data from the request body
     body = request.get_json()
 
-    # Retrieve the given object uuids from the request 
+    # Retrieve the given object uuids from the request
     if request.method == "POST":
         uuids = body.get("uuids")
         if not uuids:
@@ -82,9 +86,9 @@ def get_epc() -> bytes:
         uuid = request.args.get("uuid")
         if not uuid:
             return "Missing object uuid", 400
-        
+
         epcstream, _ = convert_object_to_resqml(uuid, sumo)
-    
+
     # Return the byte value of the epc stream
     return epcstream.getvalue(), 200
 
@@ -93,9 +97,9 @@ def get_epc() -> bytes:
 @verify_token
 def get_hdf() -> bytes:
     """
-        Get only the H5 files of given objects.
+    Get only the H5 files of given objects.
 
-        Returned zipped if requesting for several objects, unzipped otherwise.
+    Returned zipped if requesting for several objects, unzipped otherwise.
     """
 
     # Initialize and get the sumo exporer
@@ -104,7 +108,7 @@ def get_hdf() -> bytes:
     # Retrieve the json data from the request body
     body = request.get_json()
 
-    # Retrieve the given object uuids from the request 
+    # Retrieve the given object uuids from the request
     if request.method == "POST":
         uuids = body.get("uuids")
         if not uuids:
@@ -115,9 +119,9 @@ def get_hdf() -> bytes:
         uuid = request.args.get("uuid")
         if not uuid:
             return "Missing object uuid", 400
-        
+
         _, hdfstream = convert_object_to_resqml(uuid, sumo)
-    
+
     # Return the byte value of the hdf stream
     return hdfstream.getvalue(), 200
 
@@ -126,9 +130,9 @@ def get_hdf() -> bytes:
 @verify_token
 def get_ensemble() -> bytes:
     """
-        Retrieve an EPC and HDF5 file of all realizations given case ID and iteration number.
+    Retrieve an EPC and HDF5 file of all realizations given case ID and iteration number.
 
-        Always returns zipped data, as EPC and HDF5 always come together.
+    Always returns zipped data, as EPC and HDF5 always come together.
     """
 
     # Initialize and get the sumo exporer
@@ -154,7 +158,9 @@ def get_ensemble() -> bytes:
     names = body.get("name")
 
     # Convert and get the epc and hdf stream containing the wanted data in RESQML format
-    epcstream, hdfstream = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
+    epcstream, hdfstream = convert_ensemble_to_resqml(
+        uuid, iterations, tagnames, names, sumo
+    )
 
     # Open a stream to contain the zip data
     zipstream = BytesIO()
@@ -172,9 +178,9 @@ def get_ensemble() -> bytes:
 @verify_token
 def get_ensemble_epc() -> bytes:
     """
-        Retrieve an EPC file of all realizations given case ID and iteration number.
+    Retrieve an EPC file of all realizations given case ID and iteration number.
 
-        Returns an unzipped EPC file.
+    Returns an unzipped EPC file.
     """
 
     # Initialize and get the sumo exporer
@@ -200,7 +206,9 @@ def get_ensemble_epc() -> bytes:
     names = body.get("name")
 
     # Convert and get the epc stream containing the wanted data in RESQML format
-    epcstream, _ = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
+    epcstream, _ = convert_ensemble_to_resqml(
+        uuid, iterations, tagnames, names, sumo
+    )
 
     # Output the epc stream
     return epcstream.getvalue(), 200
@@ -210,11 +218,11 @@ def get_ensemble_epc() -> bytes:
 @verify_token
 def get_ensemble_hdf() -> bytes:
     """
-        Retrieve an HDF5 file of all realizations given case ID and iteration number.
+    Retrieve an HDF5 file of all realizations given case ID and iteration number.
 
-        Returns an unzipped HDF5 file.
+    Returns an unzipped HDF5 file.
     """
-    
+
     # Initialize and get the sumo exporer
     sumo = get_explorer(request)
 
@@ -238,7 +246,9 @@ def get_ensemble_hdf() -> bytes:
     names = body.get("name")
 
     # Convert and get the hdf stream containing the wanted data in RESQML format
-    _, hdfstream = convert_ensemble_to_resqml(uuid, iterations, tagnames, names, sumo)
+    _, hdfstream = convert_ensemble_to_resqml(
+        uuid, iterations, tagnames, names, sumo
+    )
 
     # Output the hdf stream
     return hdfstream.getvalue(), 200
