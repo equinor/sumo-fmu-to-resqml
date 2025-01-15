@@ -1,3 +1,6 @@
+Archived as of 15.01.2025.
+Other applications not ready for properly testing the service so it will be archived and the team will pick up the initiative when it becomes more relevant.
+
 # fmu-to-resqml
 
 This is a service interacting with [fmu-sumo](https://github.com/equinor/fmu-sumo) and [resqpy](https://github.com/bp/resqpy) to convert data from FMU (Fast Model Update™) to RESQML format.
